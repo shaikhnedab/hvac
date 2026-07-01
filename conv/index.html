@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC Unit Converter</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --panel-bg: #1e2538;
+            --border-color: #2e374e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; padding: 2rem; }
+        .container { width: 100%; max-width: 500px; background: var(--panel-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        h2 { margin-bottom: 1.5rem; text-align: center; }
+        .conv-group { margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; font-weight: bold; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.8rem; }
+        .input-col { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-col span { font-size: 0.75rem; color: var(--text-muted); }
+        input { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: white; border-radius: 6px; }
+        input:focus { outline: none; border-color: var(--accent-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Unit Converter</h2>
+
+    <!-- Length -->
+    <div class="conv-group">
+        <label>Length (1 inch = 25 mm)</label>
+        <div class="grid-inputs">
+            <div class="input-col"><span>Millimeters (mm)</span><input type="number" id="mm" oninput="convert('mm')"></div>
+            <div class="input-col"><span>Inches (in)</span><input type="number" id="inch" oninput="convert('inch')"></div>
+        </div>
+        <div class="input-col" style="width: 48%;"><span>Feet (ft)</span><input type="number" id="ft" oninput="convert('ft')"></div>
+    </div>
+
+    <!-- Area -->
+    <div class="conv-group">
+        <label>Area (1 inch = 25 mm)</label>
+        <div class="grid-inputs">
+            <div class="input-col"><span>Sq. Millimeters (sqmm)</span><input type="number" id="sqmm" oninput="convert('sqmm')"></div>
+            <div class="input-col"><span>Sq. Feet (sqft)</span><input type="number" id="sqft" oninput="convert('sqft')"></div>
+        </div>
+        <div class="input-col" style="width: 48%;"><span>Sq. Meters (sqm)</span><input type="number" id="sqm" oninput="convert('sqm')"></div>
+    </div>
+
+    <!-- Flow -->
+    <div class="conv-group">
+        <label>Flow (L/s &harr; CFM)</label>
+        <div class="grid-inputs">
+            <div class="input-col"><span>Litres/sec (L/s)</span><input type="number" id="ls" oninput="convert('ls')"></div>
+            <div class="input-col"><span>CFM</span><input type="number" id="cfm" oninput="convert('cfm')"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function convert(source) {
+        const val = parseFloat(document.getElementById(source).value);
+        if (isNaN(val)) return;
+
+        // Length
+        if (source === 'mm') {
+            document.getElementById('inch').value = (val / 25).toFixed(2);
+            document.getElementById('ft').value = (val / 300).toFixed(3);
+        } else if (source === 'inch') {
+            document.getElementById('mm').value = (val * 25).toFixed(2);
+            document.getElementById('ft').value = (val / 12).toFixed(3);
+        } else if (source === 'ft') {
+            document.getElementById('mm').value = (val * 300).toFixed(2);
+            document.getElementById('inch').value = (val * 12).toFixed(2);
+        }
+        
+        // Area (1 sq inch = 625 sqmm, 1 sq ft = 144 sq inch = 90,000 sqmm, 1 sqm = 1,000,000 sqmm)
+        else if (source === 'sqmm') {
+            document.getElementById('sqft').value = (val / 90000).toFixed(5);
+            document.getElementById('sqm').value = (val / 1000000).toFixed(6);
+        } else if (source === 'sqft') {
+            document.getElementById('sqmm').value = (val * 90000).toFixed(2);
+            document.getElementById('sqm').value = (val / 10.764).toFixed(4);
+        } else if (source === 'sqm') {
+            document.getElementById('sqmm').value = (val * 1000000).toFixed(2);
+            document.getElementById('sqft').value = (val * 10.764).toFixed(4);
+        }
+
+        // Flow
+        else if (source === 'ls') {
+            document.getElementById('cfm').value = (val * 2.1189).toFixed(2);
+        } else if (source === 'cfm') {
+            document.getElementById('ls').value = (val / 2.1189).toFixed(2);
+        }
+    }
+</script>
+</body>
+</html>
