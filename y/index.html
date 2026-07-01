@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y-Piece Duct Design Analyzer</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --panel-bg: #1e2538;
+            --border-color: #2e374e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --highlight-color: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
+        .wrapper { width: 100%; max-width: 1200px; }
+        header { margin-bottom: 2rem; text-align: center; }
+        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+        header p { color: var(--text-muted); font-size: 0.95rem; }
+        
+        .container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (max-width: 950px) { .container { grid-template-columns: 1fr; } }
+
+        .card { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.2rem; margin-bottom: 1.2rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        
+        .split-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .split-card-grid { grid-template-columns: 1fr; } }
+
+        .form-group { margin-bottom: 1.2rem; }
+        
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
+        .input-wrapper { display: flex; position: relative; }
+        input[type="number"] {
+            width: 100%; padding: 0.65rem 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-main); font-size: 1rem; outline: none; transition: border 0.2s;
+            padding-right: 4.5rem !important;
+        }
+        input:focus { border-color: var(--accent-color); }
+        .unit { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
+
+        .toggle-group { display: flex; gap: 0.5rem; background: var(--bg-color); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .toggle-btn { flex: 1; border: none; background: none; color: var(--text-muted); padding: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+        .toggle-btn.active { background: var(--accent-color); color: #fff; }
+
+        .results-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; }
+        .result-val { font-size: 1.2rem; font-weight: 600; color: var(--success-color); text-align: right; }
+        .sec-val { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+        
+        .highlight-item { border-left: 4px solid var(--accent-color); }
+        .highlight-item .result-val { color: var(--accent-color); font-size: 1.4rem; }
+
+        .svg-container { 
+            background-color: #141b29; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            padding: 1.5rem 1rem; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            width: 100%;
+        }
+        .svg-container svg { width: 100%; height: auto; max-width: 600px; }
+        
+        .alert { font-size: 0.85rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem; border-left: 4px solid #f87171; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <h1>Y-Piece Duct Sizing Analyzer</h1>
+        <p>Proportional airflow geometric split calculation matching standard ventilation cross-sections.</p>
+    </header>
+
+    <div class="toggle-group">
+        <button class="toggle-btn" id="unit-si" onclick="setUnitSystem('SI')">SI Units (Metric)</button>
+        <button class="toggle-btn active" id="unit-ip" onclick="setUnitSystem('IP')">IP Units (US-Imperial)</button>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Duct & Airflow Inputs</h2>
+            
+            <div class="form-group" style="border-left: 3px solid var(--accent-color); padding-left: 8px; margin-bottom: 1.5rem;">
+                <label for="mainCfm">Main Duct Airflow (X)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="mainCfm" value="3400" step="50" oninput="calculateYPiece()">
+                    <span class="unit" id="unit-flow-1">CFM</span>
+                </div>
+            </div>
+
+            <div class="split-card-grid">
+                <div class="form-group">
+                    <label for="mainWidth">Main Duct Width (A)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="mainWidth" value="24" step="1" oninput="calculateYPiece()">
+                        <span class="unit" id="unit-dim-1">in</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mainHeight">Main Duct Height (B)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="mainHeight" value="8" step="1" oninput="calculateYPiece()">
+                        <span class="unit" id="unit-dim-2">in</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="border-left: 3px solid var(--highlight-color); padding-left: 8px; margin-top: 1.5rem;">
+                <label for="branchCfm">Branch S-1 Airflow (Z)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="branchCfm" value="1400" step="50" oninput="calculateYPiece()">
+                    <span class="unit" id="unit-flow-2">CFM</span>
+                </div>
+            </div>
+            
+            <div id="flow-alert" class="alert">Warning: Branch airflow (Z) cannot exceed or equal total main airflow (X).</div>
+        </div>
+
+        <div class="card">
+            <h2>Calculated Proportions & Reference Layout</h2>
+            
+            <div class="results-list">
+                <div class="result-item highlight-item">
+                    <div>
+                        <label style="margin:0; font-weight:600; color: var(--text-main);">Y-Piece Split Size (ANS)</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Opening throat width split dimension</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-y-size">-</span>
+                        <span class="sec-val" id="res-y-size-alt"></span>
+                    </div>
+                </div>
+
+                <div class="split-card-grid">
+                    <div class="result-item">
+                        <div>
+                            <label style="margin:0;">Remaining Flow (Y)</label>
+                            <span style="font-size:0.8rem; color:var(--text-muted);">Straight branch path flow</span>
+                        </div>
+                        <div class="result-val" style="color: var(--text-main); font-size: 1.05rem;">
+                            <span id="res-remaining-flow">-</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div>
+                            <label style="margin:0;">Main Velocity</label>
+                            <span style="font-size:0.8rem; color:var(--text-muted);">Face velocity rate</span>
+                        </div>
+                        <div class="result-val" style="color: var(--text-main); font-size: 1.05rem;">
+                            <span id="res-velocity">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <label style="margin-bottom: 0.5rem; font-weight: 600;">Vector Schematic Layout Mapping:</label>
+            <div class="svg-container">
+                <svg viewBox="0 0 600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    
+                    <line x1="30" y1="260" x2="240" y2="260" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="30" y1="340" x2="240" y2="340" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="30" y1="260" x2="30" y2="340" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="4 4"/>
+                    
+                    <line x1="240" y1="290" x2="270" y2="290" stroke="#3b82f6" stroke-width="2"/>
+                    
+                    <line x1="240" y1="260" x2="240" y2="40" stroke="#f472b6" stroke-width="2"/>
+                    <path d="M 240 290 A 30 30 0 0 0 270 260" stroke="#f472b6" stroke-width="2" fill="none"/>
+                    <line x1="270" y1="260" x2="270" y2="200" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="270" y1="200" x2="290" y2="150" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="290" y1="150" x2="290" y2="40" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="240" y1="40" x2="290" y2="40" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="4 4"/>
+                    
+                    <line x1="240" y1="200" x2="270" y2="200" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
+                    <line x1="240" y1="150" x2="290" y2="150" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
+                    <text x="252" y="180" fill="#9ca3af" font-size="12" font-weight="bold">T</text>
+
+                    <line x1="240" y1="340" x2="560" y2="340" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="270" y1="290" x2="330" y2="275" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="330" y1="275" x2="560" y2="275" stroke="#f472b6" stroke-width="2"/>
+                    <line x1="560" y1="340" x2="560" y2="275" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="4 4"/>
+                    
+                    <line x1="270" y1="290" x2="270" y2="340" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
+                    <line x1="330" y1="275" x2="330" y2="340" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
+                    <text x="295" y="322" fill="#9ca3af" font-size="12" font-weight="bold">T</text>
+
+                    <line x1="234" y1="262" x2="234" y2="288" stroke="#f59e0b" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+
+                    <text x="40" y="300" fill="#60a5fa" font-size="14" font-weight="bold" id="svg-x">X: -</text>
+                    <text x="40" y="318" fill="#9ca3af" font-size="12" id="svg-ab">A Duct W x B Duct H</text>
+                    
+                    <text x="310" y="100" fill="#60a5fa" font-size="14" font-weight="bold" id="svg-z" transform="rotate(-90 310 100)">Z: -</text>
+                    <text x="328" y="118" fill="#9ca3af" font-size="12" id="svg-ef" transform="rotate(-90 328 118)">E x F Duct</text>
+                    
+                    <text x="350" y="300" fill="#34d399" font-size="14" font-weight="bold" id="svg-y">Y: -</text>
+                    <text x="350" y="318" fill="#9ca3af" font-size="12" id="svg-cd">C x D Duct</text>
+                    
+                    <rect x="135" y="263" width="90" height="24" rx="4" fill="#1e2538" stroke="#f59e0b" stroke-width="1"/>
+                    <text x="143" y="279" fill="#fbbf24" font-size="12" font-weight="bold" id="svg-ans">ANS: -</text>
+
+                    <rect x="40" y="410" width="520" height="80" rx="8" fill="#1e2538" stroke="#2e374e" stroke-width="1"/>
+                    <text x="75" y="455" fill="#9ca3af" font-size="14" font-weight="bold">Y-PIECE SIZE =</text>
+                    
+                    <line x1="210" y1="448" x2="310" y2="448" stroke="#f3f4f6" stroke-width="2"/>
+                    <text x="260" y="440" fill="#60a5fa" font-size="13" font-weight="bold" id="formula-z" text-anchor="middle">Z CFM</text>
+                    <text x="260" y="466" fill="#60a5fa" font-size="13" font-weight="bold" id="formula-x" text-anchor="middle">X CFM</text>
+                    
+                    <text x="330" y="455" fill="#9ca3af" font-size="15" font-weight="bold">X</text>
+                    <text x="360" y="455" fill="#9ca3af" font-size="14" font-weight="bold" id="formula-a">A DUCT W</text>
+                    <text x="440" y="455" fill="#fbbf24" font-size="15" font-weight="bold" id="formula-ans">= ANS</text>
+
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#f59e0b"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSystem = 'IP';
+
+    const systemConfigs = {
+        SI: { mainFlow: 5777, width: 600, height: 200, branchFlow: 2379, lblFlow: 'm³/h', lblDim: 'mm' },
+        IP: { mainFlow: 3400, width: 24, height: 8, branchFlow: 1400, lblFlow: 'CFM', lblDim: 'in' }
+    };
+
+    function setUnitSystem(system) {
+        currentSystem = system;
+        document.getElementById('unit-si').classList.toggle('active', system === 'SI');
+        document.getElementById('unit-ip').classList.toggle('active', system === 'IP');
+
+        const config = systemConfigs[system];
+        
+        document.getElementById('unit-flow-1').innerText = config.lblFlow;
+        document.getElementById('unit-flow-2').innerText = config.lblFlow;
+        document.getElementById('unit-dim-1').innerText = config.lblDim;
+        document.getElementById('unit-dim-2').innerText = config.lblDim;
+
+        document.getElementById('mainCfm').value = Math.round(config.mainFlow);
+        document.getElementById('mainWidth').value = Math.round(config.width);
+        document.getElementById('mainHeight').value = Math.round(config.height);
+        document.getElementById('branchCfm').value = Math.round(config.branchFlow);
+
+        calculateYPiece();
+    }
+
+    function calculateYPiece() {
+        let flowInput = parseFloat(document.getElementById('mainCfm').value);
+        let widthInput = parseFloat(document.getElementById('mainWidth').value);
+        let heightInput = parseFloat(document.getElementById('mainHeight').value);
+        let branchInput = parseFloat(document.getElementById('branchCfm').value);
+
+        const flowAlert = document.getElementById('flow-alert');
+
+        if (isNaN(flowInput) || isNaN(widthInput) || isNaN(heightInput) || isNaN(branchInput) || flowInput <= 0 || widthInput <= 0) {
+            clearOutputs();
+            return;
+        }
+
+        if (branchInput >= flowInput) {
+            flowAlert.style.display = 'block';
+            clearOutputs();
+            return;
+        } else {
+            flowAlert.style.display = 'none';
+        }
+
+        let flowCFM = currentSystem === 'SI' ? flowInput / 1.699011 : flowInput;
+        let widthInches = currentSystem === 'SI' ? widthInput / 25 : widthInput;
+        let heightInches = currentSystem === 'SI' ? heightInput / 25 : heightInput;
+        let branchCFM = currentSystem === 'SI' ? branchInput / 1.699011 : branchInput;
+
+        let rawAnsInches = (branchCFM / flowCFM) * widthInches;
+        let rawAnsMm = rawAnsInches * 25;
+
+        let finalInches, finalMm;
+
+        if (currentSystem === 'SI') {
+            finalMm = Math.round(rawAnsMm);
+            finalInches = Math.round(finalMm / 25);
+        } else {
+            finalInches = Math.round(rawAnsInches);
+            finalMm = finalInches * 25; 
+        }
+
+        let remainingFlow = flowInput - branchInput;
+        let mainVelocityFpm = flowCFM / ((widthInches * heightInches) / 144);
+        let mainVelocityMs = mainVelocityFpm * 0.00508;
+
+        let fLabel = currentSystem === 'SI' ? ' m³/h' : ' CFM';
+        let dLabel = currentSystem === 'SI' ? ' mm' : ' in';
+
+        if (currentSystem === 'SI') {
+            document.getElementById('res-y-size').innerText = finalMm + ' mm';
+            document.getElementById('res-y-size-alt').innerText = `(${finalInches} in)`;
+            document.getElementById('res-remaining-flow').innerText = Math.round(remainingFlow) + ' m³/h';
+            document.getElementById('res-velocity').innerText = Math.round(mainVelocityMs) + ' m/s';
+        } else {
+            document.getElementById('res-y-size').innerText = finalInches + ' in';
+            document.getElementById('res-y-size-alt').innerText = `(${finalMm} mm)`;
+            document.getElementById('res-remaining-flow').innerText = Math.round(remainingFlow) + ' CFM';
+            document.getElementById('res-velocity').innerText = Math.round(mainVelocityFpm) + ' FPM';
+        }
+
+        // Apply dynamic text directly to the SVG workspace
+        document.getElementById('svg-x').textContent = 'X: ' + Math.round(flowInput) + fLabel;
+        document.getElementById('svg-ab').textContent = Math.round(widthInput) + 'x' + Math.round(heightInput) + dLabel + ' Main';
+        document.getElementById('svg-z').textContent = 'Z: ' + Math.round(branchInput) + fLabel;
+        document.getElementById('svg-y').textContent = 'Y: ' + Math.round(remainingFlow) + fLabel;
+        
+        let ansString = currentSystem === 'SI' ? finalMm + ' mm' : finalInches + ' in';
+        document.getElementById('svg-ans').textContent = 'ANS: ' + ansString;
+
+        // Apply text to bottom calculation formula card
+        document.getElementById('formula-z').textContent = Math.round(branchInput) + fLabel;
+        document.getElementById('formula-x').textContent = Math.round(flowInput) + fLabel;
+        document.getElementById('formula-a').textContent = Math.round(widthInput) + dLabel;
+        document.getElementById('formula-ans').textContent = '= ' + ansString;
+    }
+
+    function clearOutputs() {
+        document.getElementById('res-y-size').innerText = '-';
+        document.getElementById('res-y-size-alt').innerText = '';
+        document.getElementById('res-remaining-flow').innerText = '-';
+        document.getElementById('res-velocity').innerText = '-';
+        
+        document.getElementById('svg-x').textContent = 'X: -';
+        document.getElementById('svg-ab').textContent = 'A Duct W x B Duct H';
+        document.getElementById('svg-z').textContent = 'Z: -';
+        document.getElementById('svg-y').textContent = 'Y: -';
+        document.getElementById('svg-ans').textContent = 'ANS: -';
+
+        document.getElementById('formula-z').textContent = 'Z CFM';
+        document.getElementById('formula-x').textContent = 'X CFM';
+        document.getElementById('formula-a').textContent = 'A DUCT W';
+        document.getElementById('formula-ans').textContent = '= ANS';
+    }
+
+    window.onload = function() {
+        setUnitSystem('IP'); 
+    };
+</script>
+</body>
+</html>

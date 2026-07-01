@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC Duct & Plenum Sizer Pro</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --panel-bg: #1e2538;
+            --border-color: #2e374e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --info-bg: #1a2333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
+        .wrapper { width: 100%; max-width: 1100px; }
+        header { margin-bottom: 2rem; text-align: center; }
+        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+        header p { color: var(--text-muted); font-size: 0.95rem; }
+        
+        .container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .full-width { grid-template-columns: 1fr; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+        .card { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.2rem; margin-bottom: 1.2rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        
+        .split-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .split-card-grid { grid-template-columns: 1fr; } }
+
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
+        .input-wrapper { display: flex; position: relative; }
+        input[type="number"], select {
+            width: 100%; padding: 0.65rem 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-main); font-size: 1rem; outline: none; transition: border 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent-color); }
+        .unit { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
+        input { padding-right: 5rem !important; }
+
+        .toggle-group { display: flex; gap: 0.5rem; background: var(--bg-color); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .toggle-btn { flex: 1; border: none; background: none; color: var(--text-muted); padding: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+        .toggle-btn.active { background: var(--accent-color); color: #fff; }
+
+        .radio-group { display: flex; gap: 1rem; margin-bottom: 1.2rem; }
+        .radio-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
+
+        .results-list { display: flex; flex-direction: column; gap: 1rem; }
+        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; }
+        .result-val { font-size: 1.1rem; font-weight: 600; color: var(--success-color); text-align: right; }
+        .sec-val { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+        
+        /* Reference Tables */
+        .ref-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.85rem; }
+        .ref-table th, .ref-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .ref-table th { color: var(--text-muted); font-weight: 600; background-color: rgba(0,0,0,0.15); }
+        .ref-table tr:hover { background-color: rgba(255,255,255,0.02); }
+        .clickable-row { cursor: pointer; color: var(--accent-color); font-weight: 500; }
+        .clickable-row:hover { text-decoration: underline; }
+
+        .alert { font-size: 0.8rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <h1>McQuay Duct & Plenum Sizer Pro</h1>
+        <p>Complete execution toolkit for commercial air systems including swift engineering lookups.</p>
+    </header>
+
+    <div class="toggle-group">
+        <button class="toggle-btn active" id="unit-us" onclick="setUnitSystem('US')">US Units (IP)</button>
+        <button class="toggle-btn" id="unit-si" onclick="setUnitSystem('SI')">SI Units (Metric)</button>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Design Parameters</h2>
+            
+            <div class="form-group">
+                <label>Sizing Criteria Method</label>
+                <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="method" value="friction" onchange="toggleMethod()"> Equal Friction</label>
+                    <label class="radio-label"><input type="radio" name="method" value="velocity" checked onchange="toggleMethod()"> Constant Velocity</label>
+                </div>
+            </div>
+
+            <div class="split-card-grid">
+                <div class="form-group">
+                    <label for="flow">Airflow</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="flow" value="3400" oninput="calculate()">
+                        <span class="unit" id="unit-flow">CFM</span>
+                    </div>
+                </div>
+
+                <div class="form-group" id="friction-input-group" style="display: none;">
+                    <label for="friction">Design Friction Rate</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="friction" value="0.1" step="0.01" oninput="calculate()">
+                        <span class="unit" id="unit-friction">in/100ft</span>
+                    </div>
+                </div>
+
+                <div class="form-group" id="velocity-input-group">
+                    <label for="velocity">Target Velocity</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="velocity" value="1200" step="50" oninput="calculate()">
+                        <span class="unit" id="unit-velocity">FPM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="split-card-grid">
+                <div class="form-group">
+                    <label for="fixedDim" id="label-constraint-select">Side Constraint</label>
+                    <select id="fixedDim" onchange="updateConstraintLabel()">
+                        <option value="height">Lock Height, Find Width</option>
+                        <option value="width">Lock Width, Find Height</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label id="fixedDimLabel" for="fixedValue">Constraint Dimension Value</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="fixedValue" value="8" oninput="calculate()">
+                        <span class="unit" id="unit-dim">inches</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="font-size:0.95rem; margin:1.5rem 0 0.5rem 0; color:var(--text-muted); border-top:1px dashed var(--border-color); padding-top:1rem;">
+                Standard Industry Sizing Benchmarks (Click to Apply)
+            </h3>
+            <table class="ref-table">
+                <thead>
+                    <tr>
+                        <th>Application Target</th>
+                        <th id="th-vel">Target Velocity</th>
+                        <th id="th-fric">Friction Rate Target</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="clickable-row" onclick="applyRef(1500, 0.10, 0.8)">
+                        <td>Main Supply Duct</td>
+                        <td id="ref-v1">1200 - 1500 FPM</td>
+                        <td id="ref-f1">0.10 in/100ft</td>
+                    </tr>
+                    <tr class="clickable-row" onclick="applyRef(800, 0.08, 0.6)">
+                        <td>Branch / Runout Duct</td>
+                        <td id="ref-v2">700 - 900 FPM</td>
+                        <td id="ref-f2">0.08 in/100ft</td>
+                    </tr>
+                    <tr class="clickable-row" onclick="applyRef(500, 0.05, 0.4)">
+                        <td>Collar / Neck Damper Run</td>
+                        <td id="ref-v3">400 - 600 FPM</td>
+                        <td id="ref-f3">0.05 in/100ft</td>
+                    </tr>
+                    <tr class="clickable-row" onclick="applyRef(1200, 0.10, 0.8)">
+                        <td>Exhaust Fan Main Run</td>
+                        <td id="ref-v4">1000 - 1200 FPM</td>
+                        <td id="ref-f4">0.10 in/100ft</td>
+                    </tr>
+                    <tr class="clickable-row" onclick="applyRef(1000, 0.08, 0.6)">
+                        <td>Fresh Air Intake Run</td>
+                        <td id="ref-v5">900 - 1000 FPM</td>
+                        <td id="ref-f5">0.08 in/100ft</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Calculated Specifications</h2>
+            <div class="results-list">
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Calculated Velocity</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Actual fluid speed velocity</span>
+                    </div>
+                    <span class="result-val" id="res-velocity">-</span>
+                </div>
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Friction Head Loss</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);" id="res-fric-desc">-</span>
+                    </div>
+                    <span class="result-val" id="res-friction">-</span>
+                </div>
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Exact Round Diameter</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Theoretical Target</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-diameter">-</span>
+                        <span class="sec-val" id="res-diameter-alt"></span>
+                    </div>
+                </div>
+                <div class="result-item" style="border-left: 4px solid var(--accent-color);">
+                    <div>
+                        <label style="margin:0; color: var(--text-main); font-weight: 600;" id="res-rect-label">Required Width</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);" id="res-rect-sub">-</span>
+                    </div>
+                    <div class="result-val" style="color: var(--accent-color);">
+                        <span id="res-rect-value">-</span>
+                        <span class="sec-val" id="res-rect-value-alt"></span>
+                    </div>
+                </div>
+            </div>
+            <div id="aspect-alert" class="alert">Warning: Aspect ratio exceeds 4:1 benchmark guidelines. Consider adjusting side constraints.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Plenum Box Sizer (AHU / FAHU Connection Assemblies)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+            Calculates custom plenum box sizing parameters based on editable velocity criteria limits. Default parameters load standard low-loss guidelines.
+        </p>
+        
+        <div class="split-card-grid">
+            <div class="form-group">
+                <label for="plen-flow">Plenum Throughput Airflow</label>
+                <div class="input-wrapper">
+                    <input type="number" id="plen-flow" value="3400" oninput="calculatePlenum()">
+                    <span class="unit" id="unit-plen-flow">CFM</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="plen-velocity">Target Plenum Face Velocity</label>
+                <div class="input-wrapper">
+                    <input type="number" id="plen-velocity" value="500" step="50" oninput="calculatePlenum()">
+                    <span class="unit" id="unit-plen-vel">FPM</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="split-card-grid">
+            <div class="form-group">
+                <label for="plen-fixed-type">Lock Specified Selection Dimension</label>
+                <select id="plen-fixed-type" onchange="calculatePlenum()">
+                    <option value="height">Lock Height, Find Width & Depth</option>
+                    <option value="width">Lock Width, Find Height & Depth</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="plen-fixed-val">Plenum Lock Value</label>
+                <div class="input-wrapper">
+                    <input type="number" id="plen-fixed-val" value="24" oninput="calculatePlenum()">
+                    <span class="unit" id="unit-plen-dim">inches</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-top:0.5rem;">
+            <label style="margin-bottom:4px; font-weight:600; color:var(--text-main);">Calculated Dimensions Result Matrix</label>
+            <div style="background-color:var(--bg-color); border:1px solid var(--border-color); padding:0.85rem 1rem; border-radius:6px; font-weight:600; color:var(--success-color); font-size:1.1rem; min-height:48px;" id="plen-result-box">
+                -
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSystem = 'US';
+    const MM_PER_INCH = 25.0; 
+
+    const unitConfigs = {
+        US: { flow: 3400, friction: 0.1, velocity: 1200, dim: 8, plenFlow: 3400, plenVel: 500, plenDim: 24, labelFlow: 'CFM', labelFric: 'in/100ft', labelVel: 'FPM', labelDim: 'inches', labelPlenVel: 'FPM' },
+        SI: { flow: 1600, friction: 0.8, velocity: 6, dim: 200, plenFlow: 1600, plenVel: 2.5, plenDim: 600, labelFlow: 'L/s', labelFric: 'Pa/m', labelVel: 'm/s', labelDim: 'mm', labelPlenVel: 'm/s' }
+    };
+
+    function setUnitSystem(system) {
+        currentSystem = system;
+        document.getElementById('unit-us').classList.toggle('active', system === 'US');
+        document.getElementById('unit-si').classList.toggle('active', system === 'SI');
+
+        const config = unitConfigs[system];
+        document.getElementById('unit-flow').innerText = config.labelFlow;
+        document.getElementById('unit-friction').innerText = config.labelFric;
+        document.getElementById('unit-velocity').innerText = config.labelVel;
+        document.getElementById('unit-dim').innerText = config.labelDim;
+        document.getElementById('unit-plen-flow').innerText = config.labelFlow;
+        document.getElementById('unit-plen-vel').innerText = config.labelPlenVel;
+        document.getElementById('unit-plen-dim').innerText = config.labelDim;
+        
+        document.getElementById('flow').value = config.flow;
+        document.getElementById('friction').value = config.friction;
+        document.getElementById('velocity').value = config.velocity;
+        document.getElementById('fixedValue').value = config.dim;
+        document.getElementById('plen-flow').value = config.plenFlow;
+        document.getElementById('plen-velocity').value = config.plenVel;
+        document.getElementById('plen-fixed-val').value = config.plenDim;
+
+        document.getElementById('th-vel').innerText = `Target Velocity (${config.labelVel})`;
+        document.getElementById('th-fric').innerText = `Friction Target (${config.labelFric})`;
+
+        if(system === 'US') {
+            document.getElementById('ref-v1').innerText = "1200 - 1500 FPM"; document.getElementById('ref-f1').innerText = "0.10 in/100ft";
+            document.getElementById('ref-v2').innerText = "700 - 900 FPM";   document.getElementById('ref-f2').innerText = "0.08 in/100ft";
+            document.getElementById('ref-v3').innerText = "400 - 600 FPM";   document.getElementById('ref-f3').innerText = "0.05 in/100ft";
+            document.getElementById('ref-v4').innerText = "1000 - 1200 FPM"; document.getElementById('ref-f4').innerText = "0.10 in/100ft";
+            document.getElementById('ref-v5').innerText = "900 - 1000 FPM";  document.getElementById('ref-f5').innerText = "0.08 in/100ft";
+        } else {
+            document.getElementById('ref-v1').innerText = "6.0 - 7.5 m/s";   document.getElementById('ref-f1').innerText = "0.80 Pa/m";
+            document.getElementById('ref-v2').innerText = "3.5 - 4.5 m/s";   document.getElementById('ref-f2').innerText = "0.65 Pa/m";
+            document.getElementById('ref-v3').innerText = "2.0 - 3.0 m/s";   document.getElementById('ref-f3').innerText = "0.40 Pa/m";
+            document.getElementById('ref-v4').innerText = "5.0 - 6.0 m/s";   document.getElementById('ref-f4').innerText = "0.80 Pa/m";
+            document.getElementById('ref-v5').innerText = "4.5 - 5.0 m/s";   document.getElementById('ref-f5').innerText = "0.65 Pa/m";
+        }
+
+        calculate();
+        calculatePlenum();
+    }
+
+    function applyRef(velUS, fricUS, fricSI) {
+        const method = document.querySelector('input[name="method"]:checked').value;
+        if(method === 'velocity') {
+            document.getElementById('velocity').value = currentSystem === 'US' ? velUS : Math.round(velUS * 0.00508);
+        } else {
+            document.getElementById('friction').value = currentSystem === 'US' ? fricUS : fricSI;
+        }
+        calculate();
+    }
+
+    function toggleMethod() {
+        const method = document.querySelector('input[name="method"]:checked').value;
+        document.getElementById('friction-input-group').style.display = method === 'friction' ? 'block' : 'none';
+        document.getElementById('velocity-input-group').style.display = method === 'velocity' ? 'block' : 'none';
+        calculate();
+    }
+
+    function updateConstraintLabel() { calculate(); }
+
+    function calculate() {
+        let flow = parseFloat(document.getElementById('flow').value);
+        const method = document.querySelector('input[name="method"]:checked').value;
+        const fixedDim = document.getElementById('fixedDim').value;
+        let fixedVal = parseFloat(document.getElementById('fixedValue').value);
+
+        if (!flow || flow <= 0 || !fixedVal || fixedVal <= 0) return;
+
+        let internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
+        let internalFriction = 0;
+        let internalVelocity = 0;
+        let internalDiameter = 0;
+
+        if (method === 'friction') {
+            let inputFric = parseFloat(document.getElementById('friction').value);
+            if (!inputFric || inputFric <= 0) return;
+            internalFriction = currentSystem === 'SI' ? inputFric * 0.0401865 : inputFric;
+            
+            internalDiameter = Math.pow((0.10913 * Math.pow(internalCFM, 1.9)) / internalFriction, 1 / 5.02);
+            let areaSqFt = (Math.PI * Math.pow(internalDiameter / 12, 2)) / 4;
+            internalVelocity = internalCFM / areaSqFt;
+        } else {
+            let inputVel = parseFloat(document.getElementById('velocity').value);
+            if (!inputVel || inputVel <= 0) return;
+            internalVelocity = currentSystem === 'SI' ? inputVel * 196.85 : inputVel;
+            
+            let areaSqFt = internalCFM / internalVelocity;
+            internalDiameter = Math.sqrt((areaSqFt * 4) / Math.PI) * 12;
+            internalFriction = (0.10913 * Math.pow(internalCFM, 1.9)) / Math.pow(internalDiameter, 5.02);
+        }
+
+        let internalFixedVal = currentSystem === 'SI' ? fixedVal / MM_PER_INCH : fixedVal; 
+        let low = 1, high = 1000;
+        
+        for (let i = 0; i < 40; i++) {
+            let mid = (low + high) / 2;
+            let a = fixedDim === 'height' ? internalFixedVal : mid;
+            let b = fixedDim === 'height' ? mid : internalFixedVal;
+            
+            let eqDiameter = 1.30 * Math.pow(Math.pow(a * b, 0.625) / Math.pow(a + b, 0.25), 1);
+            if (eqDiameter < internalDiameter) { low = mid; } else { high = mid; }
+        }
+        let internalCalculatedSide = (low + high) / 2;
+
+        let inchDiam, mmDiam, inchCalculatedSide, mmCalculatedSide;
+
+        if (currentSystem === 'US') {
+            inchDiam = Math.ceil(internalDiameter);
+            mmDiam = Math.ceil(inchDiam * MM_PER_INCH); 
+            inchCalculatedSide = Math.ceil(internalCalculatedSide);
+            mmCalculatedSide = Math.ceil(inchCalculatedSide * MM_PER_INCH);
+        } else {
+            mmDiam = Math.ceil(internalDiameter * MM_PER_INCH);
+            inchDiam = Math.ceil(mmDiam / MM_PER_INCH); 
+            mmCalculatedSide = Math.ceil(internalCalculatedSide * MM_PER_INCH);
+            inchCalculatedSide = Math.ceil(mmCalculatedSide / MM_PER_INCH);
+        }
+
+        let finalVelocity = currentSystem === 'SI' ? internalVelocity * 0.00508 : internalVelocity;
+        let finalFriction = currentSystem === 'SI' ? (internalFriction / 0.0401865) : internalFriction;
+
+        document.getElementById('res-velocity').innerText = Math.round(finalVelocity) + (currentSystem === 'SI' ? ' m/s' : ' FPM');
+        document.getElementById('res-friction').innerText = finalFriction.toFixed(3) + (currentSystem === 'SI' ? ' Pa/m' : ' in.w.g.');
+        document.getElementById('res-fric-desc').innerText = currentSystem === 'SI' ? 'Per meter of run' : 'Per 100 feet of run';
+
+        if (currentSystem === 'US') {
+            document.getElementById('res-diameter').innerText = inchDiam + ' in';
+            document.getElementById('res-diameter-alt').innerText = `(${mmDiam} mm)`;
+        } else {
+            document.getElementById('res-diameter').innerText = mmDiam + ' mm';
+            document.getElementById('res-diameter-alt').innerText = `(${inchDiam} in)`;
+        }
+
+        const constraintValInch = currentSystem === 'SI' ? Math.ceil(fixedVal / MM_PER_INCH) : fixedVal;
+        const constraintValMm = currentSystem === 'SI' ? fixedVal : Math.ceil(fixedVal * MM_PER_INCH);
+
+        if (fixedDim === 'height') {
+            document.getElementById('res-rect-label').innerText = 'Required Width';
+            document.getElementById('res-rect-sub').innerText = `At fixed Height: ${constraintValInch}" / ${constraintValMm} mm`;
+            
+            if (currentSystem === 'US') {
+                document.getElementById('res-rect-value').innerText = inchCalculatedSide + ' in';
+                document.getElementById('res-rect-value-alt').innerText = `(${mmCalculatedSide} mm)`;
+            } else {
+                document.getElementById('res-rect-value').innerText = mmCalculatedSide + ' mm';
+                document.getElementById('res-rect-value-alt').innerText = `(${inchCalculatedSide} in)`;
+            }
+            toggleAlert(inchCalculatedSide, parseFloat(constraintValInch));
+        } else {
+            document.getElementById('res-rect-label').innerText = 'Required Height';
+            document.getElementById('res-rect-sub').innerText = `At fixed Width: ${constraintValInch}" / ${constraintValMm} mm`;
+            
+            if (currentSystem === 'US') {
+                document.getElementById('res-rect-value').innerText = inchCalculatedSide + ' in';
+                document.getElementById('res-rect-value-alt').innerText = `(${mmCalculatedSide} mm)`;
+            } else {
+                document.getElementById('res-rect-value').innerText = mmCalculatedSide + ' mm';
+                document.getElementById('res-rect-value-alt').innerText = `(${inchCalculatedSide} in)`;
+            }
+            toggleAlert(parseFloat(constraintValInch), inchCalculatedSide);
+        }
+    }
+
+    function calculatePlenum() {
+        let plenFlow = parseFloat(document.getElementById('plen-flow').value);
+        let targetVel = parseFloat(document.getElementById('plen-velocity').value);
+        let fixedType = document.getElementById('plen-fixed-type').value;
+        let fixedVal = parseFloat(document.getElementById('plen-fixed-val').value);
+
+        if(!plenFlow || plenFlow <= 0 || !targetVel || targetVel <= 0 || !fixedVal || fixedVal <= 0) return;
+
+        // Process target internal velocity standard
+        let flowCFM = currentSystem === 'SI' ? plenFlow * 2.11888 : plenFlow;
+        let velocityFPM = currentSystem === 'SI' ? targetVel * 196.85 : targetVel;
+
+        let requiredAreaSqFt = flowCFM / velocityFPM; 
+        let requiredAreaSqIn = requiredAreaSqFt * 144;
+
+        let fixedValInch = currentSystem === 'SI' ? fixedVal / MM_PER_INCH : fixedVal;
+        let calculatedSideInch = requiredAreaSqIn / fixedValInch;
+        
+        let depthInch = Math.max(calculatedSideInch * 1.25, 18); 
+
+        let wInch, hInch, dInch, wMm, hMm, dMm;
+
+        if(fixedType === 'height') {
+            hInch = Math.ceil(fixedValInch);
+            wInch = Math.ceil(calculatedSideInch);
+            dInch = Math.ceil(depthInch);
+        } else {
+            wInch = Math.ceil(fixedValInch);
+            hInch = Math.ceil(calculatedSideInch);
+            dInch = Math.ceil(depthInch);
+        }
+
+        wMm = wInch * MM_PER_INCH;
+        hMm = hInch * MM_PER_INCH;
+        dMm = dInch * MM_PER_INCH;
+
+        if(currentSystem === 'US') {
+            document.getElementById('plen-result-box').innerHTML = `W: ${wInch}" &nbsp;×&nbsp; H: ${hInch}" &nbsp;×&nbsp; D: ${dInch}" <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">Metric Conversion: ${wMm} × ${hMm} × ${dMm} mm</span>`;
+        } else {
+            document.getElementById('plen-result-box').innerHTML = `W: ${wMm} mm &nbsp;×&nbsp; H: ${hMm} mm &nbsp;×&nbsp; D: ${dMm} mm <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">US-IP Conversion: ${wInch}" × ${hInch}" × ${dInch}"</span>`;
+        }
+    }
+
+    function toggleAlert(w, h) {
+        const ratio = Math.max(w/h, h/w);
+        document.getElementById('aspect-alert').style.display = ratio > 4 ? 'block' : 'none';
+    }
+
+    window.onload = function() {
+        setUnitSystem('US');
+        toggleMethod();
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychrometric Calculator Pro</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --panel-bg: #1e2538;
+            --border-color: #2e374e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --highlight-color: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
+        .wrapper { width: 100%; max-width: 1100px; }
+        header { margin-bottom: 2rem; text-align: center; }
+        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+        header p { color: var(--text-muted); font-size: 0.95rem; }
+        
+        .container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+        .card { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.2rem; margin-bottom: 1.2rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        
+        .split-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .split-card-grid { grid-template-columns: 1fr; } }
+
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group.disabled { opacity: 0.4; pointer-events: none; }
+        
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
+        .input-wrapper { display: flex; position: relative; }
+        input[type="number"], select {
+            width: 100%; padding: 0.65rem 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-main); font-size: 1rem; outline: none; transition: border 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent-color); }
+        .unit { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
+        input { padding-right: 4.5rem !important; }
+
+        .toggle-group { display: flex; gap: 0.5rem; background: var(--bg-color); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .toggle-btn { flex: 1; border: none; background: none; color: var(--text-muted); padding: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+        .toggle-btn.active { background: var(--accent-color); color: #fff; }
+
+        .radio-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
+        .radio-label input { accent-color: var(--accent-color); }
+        .radio-label.active-criterion { color: var(--text-main); font-weight: 600; }
+
+        .results-list { display: flex; flex-direction: column; gap: 1rem; }
+        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; }
+        .result-val { font-size: 1.1rem; font-weight: 600; color: var(--success-color); text-align: right; }
+        .sec-val { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+        
+        .highlight-item { border-left: 4px solid var(--highlight-color); }
+        .highlight-item .result-val { color: var(--highlight-color); }
+
+        .alert { font-size: 0.8rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <h1>Psychrometric Air Property Calculator</h1>
+        <p>Interactive thermodynamic property analyzer with synchronized dual-unit conversions.</p>
+    </header>
+
+    <div class="toggle-group">
+        <button class="toggle-btn" id="unit-si" onclick="setUnitSystem('SI')">SI Units (Metric)</button>
+        <button class="toggle-btn active" id="unit-ip" onclick="setUnitSystem('IP')">IP Units (US-Imperial)</button>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Input Air Parameters</h2>
+
+            <div class="form-group" style="margin-bottom: 1.5rem; border: 1px dashed var(--accent-color); padding: 0.75rem; border-radius: 8px;">
+                <label for="ishraePreset" style="color: var(--accent-color); font-weight: 600;">ISHRAE 1.0% Peak Heat Load Presets</label>
+                <select id="ishraePreset" onchange="loadIshraePreset()">
+                    <option value="custom">-- Select Indian City Preset (Manual Input) --</option>
+                    <option value="delhi">New Delhi (Hot & Dry / Peak Summer)</option>
+                    <option value="mumbai">Mumbai (Warm & Humid)</option>
+                    <option value="chennai">Chennai (Warm & Humid / High Ambient)</option>
+                    <option value="kolkata">Kolkata (Warm & Humid)</option>
+                    <option value="hyderabad">Hyderabad (Hot & Dry / Composite)</option>
+                    <option value="bangalore">Bengaluru (Temperate / Mild Peak)</option>
+                </select>
+            </div>
+            
+            <div class="split-card-grid">
+                <div class="form-group">
+                    <label for="dbTemp">Dry Bulb Temperature</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="dbTemp" value="77.00" step="0.1" oninput="resetPresetDropdown(); calculate();">
+                        <span class="unit" id="unit-db">°F</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="altitude">Altitude</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="altitude" value="0.00" oninput="resetPresetDropdown(); calculate();">
+                        <span class="unit" id="unit-alt">ft</span>
+                    </div>
+                </div>
+            </div>
+
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
+                Select Secondary Interlocking Parameter:
+            </p>
+
+            <div class="form-group">
+                <label class="radio-label active-criterion" id="lbl-radio-rh">
+                    <input type="radio" name="secondaryParam" value="rh" checked onchange="toggleInputs()"> Relative Humidity
+                </label>
+                <div class="input-wrapper" id="wrapper-rh">
+                    <input type="number" id="relHum" value="55.00" min="0" max="100" step="1" oninput="resetPresetDropdown(); calculate();">
+                    <span class="unit">%</span>
+                </div>
+            </div>
+
+            <div class="form-group" style="border-left: 3px solid var(--highlight-color); padding-left: 8px;">
+                <label class="radio-label" id="lbl-radio-wb">
+                    <input type="radio" name="secondaryParam" value="wb" onchange="toggleInputs()"> Wet Bulb Temperature
+                </label>
+                <div class="input-wrapper disabled" id="wrapper-wb">
+                    <input type="number" id="wbTemp" value="65.90" step="0.1" oninput="resetPresetDropdown(); calculate();">
+                    <span class="unit" id="unit-wb">°F</span>
+                </div>
+            </div>
+
+            <div class="form-group" style="border-left: 3px solid var(--highlight-color); padding-left: 8px;">
+                <label class="radio-label" id="lbl-radio-dp">
+                    <input type="radio" name="secondaryParam" value="dp" onchange="toggleInputs()"> Dew Point Temperature
+                </label>
+                <div class="input-wrapper disabled" id="wrapper-dp">
+                    <input type="number" id="dpTemp" value="60.10" step="0.1" oninput="resetPresetDropdown(); calculate();">
+                    <span class="unit" id="unit-dp-label">°F</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Calculated Thermodynamic Properties</h2>
+            <div class="results-list">
+                
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Atmospheric Barometric Pressure</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Station pressure at elevation</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-press">-</span>
+                        <span class="sec-val" id="res-press-alt"></span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Saturated Vapor Pressure</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Max pressure limit (p<sub>ws</sub>)</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-sat-press">-</span>
+                        <span class="sec-val" id="res-sat-press-alt"></span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Partial Vapor Pressure</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Actual water vapor split (p<sub>v</sub>)</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-part-press">-</span>
+                        <span class="sec-val" id="res-part-press-alt"></span>
+                    </div>
+                </div>
+
+                <div class="result-item highlight-item">
+                    <div>
+                        <label style="margin:0; font-weight:600;">Humidity Ratio (Moisture Content)</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Absolute humidity weight ratio</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-humidity-ratio">-</span>
+                        <span class="sec-val" id="res-humidity-ratio-alt"></span>
+                    </div>
+                </div>
+
+                <div class="result-item" style="border-left: 4px solid var(--accent-color);">
+                    <div>
+                        <label style="margin:0; color: var(--text-main); font-weight:600;">Total Enthalpy</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Energy index profile level</span>
+                    </div>
+                    <div class="result-val" style="color: var(--accent-color);">
+                        <span id="res-enthalpy">-</span>
+                        <span class="sec-val" id="res-enthalpy-alt"></span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div>
+                        <label style="margin:0;">Specific Volume</label>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Space volume per air mass unit</span>
+                    </div>
+                    <div class="result-val">
+                        <span id="res-volume">-</span>
+                        <span class="sec-val" id="res-volume-alt"></span>
+                    </div>
+                </div>
+
+            </div>
+            <div id="saturation-alert" class="alert">Warning: Inputs out of logical range bounds (Condensation / Supersaturation state encountered).</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSystem = 'IP';
+
+    const systemConfigs = {
+        SI: { db: 25.00, alt: 0.00, wb: 19.30, rh: 55.00, dp: 15.30, lblTemp: '°C', lblAlt: 'm' },
+        IP: { db: 77.00, alt: 0.00, wb: 65.90, rh: 55.00, dp: 60.10, lblTemp: '°F', lblAlt: 'ft' }
+    };
+
+    // Official ISHRAE 1.0% Peak External Design Conditions database mappings
+    const ishraeCities = {
+        delhi:     { si: { db: 44.00, alt: 216, wb: 24.00 }, ip: { db: 111.20, alt: 709,  wb: 75.20 } },
+        mumbai:    { si: { db: 35.20, alt: 14,  wb: 27.90 }, ip: { db: 95.36,  alt: 46,   wb: 82.22 } },
+        chennai:   { si: { db: 40.20, alt: 16,  wb: 27.00 }, ip: { db: 104.36, alt: 52,   wb: 80.60 } },
+        kolkata:   { si: { db: 39.10, alt: 6,   wb: 27.60 }, ip: { db: 102.38, alt: 20,   wb: 81.68 } },
+        hyderabad: { si: { db: 41.30, alt: 542, wb: 23.10 }, ip: { db: 106.34, alt: 1778, wb: 73.58 } },
+        bangalore: { si: { db: 34.60, alt: 921, wb: 21.20 }, ip: { db: 94.28,  alt: 3022, wb: 70.16 } }
+    };
+
+    function loadIshraePreset() {
+        const cityKey = document.getElementById('ishraePreset').value;
+        if (cityKey === 'custom') return;
+
+        const data = ishraeCities[cityKey][currentSystem.toLowerCase()];
+
+        // Peak design loads interlocking metrics typically rely on standard WBT loops
+        document.querySelectorAll('input[name="secondaryParam"]').forEach(radio => {
+            if (radio.value === 'wb') radio.checked = true;
+        });
+        toggleInputs();
+
+        document.getElementById('dbTemp').value = data.db.toFixed(2);
+        document.getElementById('altitude').value = data.alt.toFixed(2);
+        document.getElementById('wbTemp').value = data.wb.toFixed(2);
+
+        calculate();
+    }
+
+    function resetPresetDropdown() {
+        document.getElementById('ishraePreset').value = 'custom';
+    }
+
+    function setUnitSystem(system) {
+        currentSystem = system;
+        document.getElementById('unit-si').classList.toggle('active', system === 'SI');
+        document.getElementById('unit-ip').classList.toggle('active', system === 'IP');
+
+        const config = systemConfigs[system];
+        
+        document.getElementById('unit-db').innerText = config.lblTemp;
+        document.getElementById('unit-alt').innerText = config.lblAlt;
+        document.getElementById('unit-wb').innerText = config.lblTemp;
+        document.getElementById('unit-dp-label').innerText = config.lblTemp;
+
+        resetPresetDropdown();
+
+        document.getElementById('dbTemp').value = config.db.toFixed(2);
+        document.getElementById('altitude').value = config.alt.toFixed(2);
+        document.getElementById('wbTemp').value = config.wb.toFixed(2);
+        document.getElementById('relHum').value = config.rh.toFixed(2);
+        document.getElementById('dpTemp').value = config.dp.toFixed(2);
+
+        calculate();
+    }
+
+    function toggleInputs() {
+        const activeRadio = document.querySelector('input[name="secondaryParam"]:checked').value;
+        
+        document.getElementById('wrapper-wb').classList.toggle('disabled', activeRadio !== 'wb');
+        document.getElementById('wrapper-rh').classList.toggle('disabled', activeRadio !== 'rh');
+        document.getElementById('wrapper-dp').classList.toggle('disabled', activeRadio !== 'dp');
+
+        document.getElementById('lbl-radio-wb').classList.toggle('active-criterion', activeRadio === 'wb');
+        document.getElementById('lbl-radio-rh').classList.toggle('active-criterion', activeRadio === 'rh');
+        document.getElementById('lbl-radio-dp').classList.toggle('active-criterion', activeRadio === 'dp');
+
+        calculate();
+    }
+
+    function getSatVaporPressCelsius(tC) {
+        return 6.1078 * Math.pow(10, (7.5 * tC) / (237.3 + tC)); 
+    }
+
+    function getDewPointCelsius(vPressMbar) {
+        const c = Math.log10(vPressMbar / 6.1078);
+        return (237.3 * c) / (7.5 - c);
+    }
+
+    function calculate() {
+        let dbInput = parseFloat(document.getElementById('dbTemp').value);
+        let altInput = parseFloat(document.getElementById('altitude').value);
+        const criteria = document.querySelector('input[name="secondaryParam"]:checked').value;
+
+        if (isNaN(dbInput) || isNaN(altInput)) return;
+
+        let tC = currentSystem === 'IP' ? (dbInput - 32) * 5 / 9 : dbInput;
+        let tF = currentSystem === 'IP' ? dbInput : (dbInput * 9 / 5) + 32;
+        let altMeters = currentSystem === 'IP' ? altInput / 3.28084 : altInput;
+
+        let pressMbar = 1013.25 * Math.pow(1 - 2.25577e-5 * altMeters, 5.25588);
+        if(pressMbar <= 0) return;
+
+        let p_ws = getSatVaporPressCelsius(tC); 
+        let p_v = 0; 
+
+        let isInvalidState = false;
+
+        if (criteria === 'rh') {
+            let rh = parseFloat(document.getElementById('relHum').value);
+            if (isNaN(rh) || rh < 0 || rh > 100) return;
+            p_v = (rh / 100) * p_ws;
+        } 
+        else if (criteria === 'dp') {
+            let dpInput = parseFloat(document.getElementById('dpTemp').value);
+            if (isNaN(dpInput)) return;
+            let dpC = currentSystem === 'IP' ? (dpInput - 32) * 5 / 9 : dpInput;
+            
+            if (dpC > tC) { isInvalidState = true; dpC = tC; }
+            p_v = getSatVaporPressCelsius(dpC);
+        } 
+        else if (criteria === 'wb') {
+            let wbInput = parseFloat(document.getElementById('wbTemp').value);
+            if (isNaN(wbInput)) return;
+            let wbC = currentSystem === 'IP' ? (wbInput - 32) * 5 / 9 : wbInput;
+
+            if (wbC > tC) { isInvalidState = true; wbC = tC; }
+            
+            let p_ws_wb = getSatVaporPressCelsius(wbC);
+            p_v = p_ws_wb - ((pressMbar * (tC - wbC)) / 1512) * (1 + 0.00114 * wbC);
+            if(p_v < 0) p_v = 0;
+        }
+
+        if (p_v > p_ws) { p_v = p_ws; isInvalidState = true; }
+
+        let HR = 0.621945 * p_v / (pressMbar - p_v);
+        
+        let enthalpySI = (1.006 * tC) + HR * (2501 + 1.86 * tC);
+        let enthalpyIP = (0.240 * tF) + (HR * (1061 + 0.444 * tF));
+
+        let specVolSI = (287.055 * (tC + 273.15) * (1 + 1.6078 * HR)) / (pressMbar * 100);
+
+        let rhComputed = (p_v / p_ws) * 100;
+        let dpCComputed = getDewPointCelsius(p_v);
+        
+        if (criteria !== 'rh') document.getElementById('relHum').value = rhComputed.toFixed(2);
+        if (criteria !== 'dp') {
+            let finalDp = currentSystem === 'IP' ? (dpCComputed * 9 / 5) + 32 : dpCComputed;
+            document.getElementById('dpTemp').value = finalDp.toFixed(2);
+        }
+        if (criteria !== 'wb') {
+            let lowWb = -50, highWb = tC, solvedWbC = tC;
+            for(let i=0; i<20; i++) {
+                let testWb = (lowWb + highWb) / 2;
+                let testPwsWb = getSatVaporPressCelsius(testWb);
+                let testPv = testPwsWb - ((pressMbar * (tC - testWb)) / 1512) * (1 + 0.00114 * testWb);
+                if (testPv < p_v) { lowWb = testWb; } else { highWb = testWb; }
+            }
+            solvedWbC = (lowWb + highWb) / 2;
+            let finalWb = currentSystem === 'IP' ? (solvedWbC * 9 / 5) + 32 : solvedWbC;
+            document.getElementById('wbTemp').value = finalWb.toFixed(2);
+        }
+
+        document.getElementById('saturation-alert').style.display = isInvalidState ? 'block' : 'none';
+
+        let outPressBar = pressMbar / 1000;
+        let outPressInHg = pressMbar * 0.0295300; 
+        let outSatMbar = p_ws;
+        let outSatInHg = p_ws * 0.0295300;       
+        let outPartMbar = p_v;
+        let outPartInHg = p_v * 0.0295300;       
+
+        let outHR_SI = HR; 
+        let outHR_IP = HR * 7000; 
+        let outVolIP = specVolSI * 16.0185; 
+
+        if (currentSystem === 'SI') {
+            document.getElementById('res-press').innerText = outPressBar.toFixed(2) + ' bar';
+            document.getElementById('res-press-alt').innerText = `(${outPressInHg.toFixed(2)} In.Hg)`;
+
+            document.getElementById('res-sat-press').innerText = outSatMbar.toFixed(2) + ' mbar';
+            document.getElementById('res-sat-press-alt').innerText = `(${outSatInHg.toFixed(2)} In.Hg)`;
+
+            document.getElementById('res-part-press').innerText = outPartMbar.toFixed(2) + ' mbar';
+            document.getElementById('res-part-press-alt').innerText = `(${outPartInHg.toFixed(2)} In.Hg)`;
+
+            document.getElementById('res-humidity-ratio').innerText = outHR_SI.toFixed(5) + ' kg/kg';
+            document.getElementById('res-humidity-ratio-alt').innerText = `(${outHR_IP.toFixed(2)} gr/lb)`;
+
+            document.getElementById('res-enthalpy').innerText = enthalpySI.toFixed(2) + ' kJ/kg';
+            document.getElementById('res-enthalpy-alt').innerText = `(${enthalpyIP.toFixed(2)} Btu/lb)`;
+
+            document.getElementById('res-volume').innerText = specVolSI.toFixed(2) + ' m³/kg';
+            document.getElementById('res-volume-alt').innerText = `(${outVolIP.toFixed(2)} Cft/lb)`;
+        } else {
+            document.getElementById('res-press').innerText = outPressInHg.toFixed(2) + ' In.Hg';
+            document.getElementById('res-press-alt').innerText = `(${outPressBar.toFixed(2)} bar)`;
+
+            document.getElementById('res-sat-press').innerText = outSatInHg.toFixed(2) + ' In.Hg';
+            document.getElementById('res-sat-press-alt').innerText = `(${outSatMbar.toFixed(2)} mbar)`;
+
+            document.getElementById('res-part-press').innerText = outPartInHg.toFixed(2) + ' In.Hg';
+            document.getElementById('res-part-press-alt').innerText = `(${outPartMbar.toFixed(2)} mbar)`;
+
+            document.getElementById('res-humidity-ratio').innerText = outHR_IP.toFixed(2) + ' gr/lb';
+            document.getElementById('res-humidity-ratio-alt').innerText = `(${outHR_SI.toFixed(5)} kg/kg)`;
+
+            document.getElementById('res-enthalpy').innerText = enthalpyIP.toFixed(2) + ' Btu/lb';
+            document.getElementById('res-enthalpy-alt').innerText = `(${enthalpySI.toFixed(2)} kJ/kg)`;
+
+            document.getElementById('res-volume').innerText = outVolIP.toFixed(2) + ' Cft/lb';
+            document.getElementById('res-volume-alt').innerText = `(${specVolSI.toFixed(2)} m³/kg)`;
+        }
+    }
+
+    window.onload = function() {
+        setUnitSystem('IP'); 
+    };
+</script>
+</body>
+</html>

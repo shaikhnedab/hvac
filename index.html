@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC Design Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --panel-bg: #1e2538;
+            --border-color: #2e374e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #3b82f6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
+        .wrapper { width: 100%; max-width: 600px; }
+        header { text-align: center; margin-bottom: 3rem; }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #fff; }
+        header p { color: var(--text-muted); }
+        
+        .nav-grid { display: grid; gap: 1rem; }
+        .nav-card { 
+            background-color: var(--panel-bg); 
+            border: 1px solid var(--border-color); 
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-card:hover { border-color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        .nav-card h3 { font-size: 1.1rem; }
+        .nav-card span { color: var(--accent-color); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <h1>HVAC Design Suite</h1>
+        <p>Select a utility to begin your calculation</p>
+    </header>
+
+    <div class="nav-grid">
+        <a href="./y/index.html" class="nav-card">
+            <h3>Y-Piece Duct Splitter</h3>
+            <span>Launch →</span>
+        </a>
+        <a href="./duct/index.html" class="nav-card">
+            <h3>Duct Pressure Drop</h3>
+            <span>Launch →</span>
+        </a>
+        <a href="./psy/index.html" class="nav-card">
+            <h3>Psychrometric Conversion</h3>
+            <span>Launch →</span>
+        </a>
+        <a href="./chw/index.html" class="nav-card">
+            <h3>Chilled Water Pipe Sizer</h3>
+            <span>Launch →</span>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
