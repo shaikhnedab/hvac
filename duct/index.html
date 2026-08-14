@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HVAC Duct & Plenum Sizer Pro</title>
+    <meta name="theme-color" content="#121824">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="apple-touch-icon" href="../icons/icon-192.png">
     <style>
         :root {
             --bg-color: #121824;
@@ -18,8 +22,9 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
-        .wrapper { width: 100%; max-width: 1100px; }
+        html { overflow-y: scroll; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
+        .wrapper { width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
         header { margin-bottom: 2rem; text-align: center; }
         header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
         header p { color: var(--text-muted); font-size: 0.95rem; }
@@ -66,9 +71,53 @@
         .clickable-row:hover { text-decoration: underline; }
 
         .alert { font-size: 0.8rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: none; }
+
+        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1rem; display: inline-block; font-size: 0.9rem; }
+        .back-link:hover { color: var(--text-main); }
+
+        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
+        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
+        .tool-nav a.active { color: #fff; background: var(--accent-color); }
+        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
+        .tool-nav .nav-brand:hover { background: none; }
+
+        .clickable-row.active { background-color: rgba(59, 130, 246, 0.15); outline: 1px solid var(--accent-color); }
+        .clickable-row .bench-check { color: var(--accent-color); font-weight: 700; visibility: hidden; }
+        .clickable-row.active .bench-check { visibility: visible; }
+
+        .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+        .tool-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .tool-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
+        .tool-btn.primary { color: var(--accent-color); border-color: var(--accent-color); }
+        .tool-btn.primary:hover { background: var(--accent-color); color: #fff; }
+
+        .result-label-row { display: flex; justify-content: space-between; align-items: baseline; }
+
+        .std-row-active { background-color: rgba(59, 130, 246, 0.15) !important; }
+        .std-sel { color: var(--accent-color); font-weight: 700; visibility: hidden; }
+        .std-row-active .std-sel { visibility: visible; }
+
+        .oval-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .oval-summary .result-item { display: block; text-align: center; }
+        @media (max-width: 600px) { .oval-summary { grid-template-columns: 1fr; } }
+        .oval-summary .result-val { text-align: center; font-size: 1.05rem; }
+
+        .info-box { font-size: 0.8rem; color: var(--text-muted); background-color: var(--info-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-top: 1rem; line-height: 1.6; }
+        .info-box strong { color: var(--text-main); }
+        .table-scroll { overflow-x: auto; }
     </style>
 </head>
 <body>
+
+<nav class="tool-nav">
+    <a href="../index.html" class="nav-brand">HVAC Suite</a>
+    <a href="../y/index.html">Y-Piece</a>
+    <a href="../duct/index.html" class="active">Duct Sizer</a>
+    <a href="../psy/index.html">Psychrometrics</a>
+    <a href="../chw/index.html">Chilled Water</a>
+    <a href="../conv/index.html">Converter</a>
+</nav>
 
 <div class="wrapper">
     <header>
@@ -140,6 +189,7 @@
             <h3 style="font-size:0.95rem; margin:1.5rem 0 0.5rem 0; color:var(--text-muted); border-top:1px dashed var(--border-color); padding-top:1rem;">
                 Standard Industry Sizing Benchmarks (Click to Apply)
             </h3>
+            <div class="table-scroll">
             <table class="ref-table">
                 <thead>
                     <tr>
@@ -149,33 +199,34 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="clickable-row" onclick="applyRef(1500, 0.10, 0.8)">
-                        <td>Main Supply Duct</td>
+                    <tr class="clickable-row" id="ref-row-1" onclick="applyRef(1500, 0.10, 0.8, this)">
+                        <td><span class="bench-check">✓</span> Main Supply Duct</td>
                         <td id="ref-v1">1200 - 1500 FPM</td>
                         <td id="ref-f1">0.10 in/100ft</td>
                     </tr>
-                    <tr class="clickable-row" onclick="applyRef(800, 0.08, 0.6)">
-                        <td>Branch / Runout Duct</td>
+                    <tr class="clickable-row" id="ref-row-2" onclick="applyRef(800, 0.08, 0.6, this)">
+                        <td><span class="bench-check">✓</span> Branch / Runout Duct</td>
                         <td id="ref-v2">700 - 900 FPM</td>
                         <td id="ref-f2">0.08 in/100ft</td>
                     </tr>
-                    <tr class="clickable-row" onclick="applyRef(500, 0.05, 0.4)">
-                        <td>Collar / Neck Damper Run</td>
+                    <tr class="clickable-row" id="ref-row-3" onclick="applyRef(500, 0.05, 0.4, this)">
+                        <td><span class="bench-check">✓</span> Collar / Neck Damper Run</td>
                         <td id="ref-v3">400 - 600 FPM</td>
                         <td id="ref-f3">0.05 in/100ft</td>
                     </tr>
-                    <tr class="clickable-row" onclick="applyRef(1200, 0.10, 0.8)">
-                        <td>Exhaust Fan Main Run</td>
+                    <tr class="clickable-row" id="ref-row-4" onclick="applyRef(1200, 0.10, 0.8, this)">
+                        <td><span class="bench-check">✓</span> Exhaust Fan Main Run</td>
                         <td id="ref-v4">1000 - 1200 FPM</td>
                         <td id="ref-f4">0.10 in/100ft</td>
                     </tr>
-                    <tr class="clickable-row" onclick="applyRef(1000, 0.08, 0.6)">
-                        <td>Fresh Air Intake Run</td>
+                    <tr class="clickable-row" id="ref-row-5" onclick="applyRef(1000, 0.08, 0.6, this)">
+                        <td><span class="bench-check">✓</span> Fresh Air Intake Run</td>
                         <td id="ref-v5">900 - 1000 FPM</td>
                         <td id="ref-f5">0.08 in/100ft</td>
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <div class="card">
@@ -217,6 +268,104 @@
                 </div>
             </div>
             <div id="aspect-alert" class="alert">Warning: Aspect ratio exceeds 4:1 benchmark guidelines. Consider adjusting side constraints.</div>
+            <div class="btn-row" style="margin-top:1rem;">
+                <button class="tool-btn primary" onclick="copyResults(this, ['res-velocity','res-friction','res-diameter','res-rect-value'])">Copy Results</button>
+                <button class="tool-btn" onclick="resetMainForm()">↺ Reset Duct Sizer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Standard Round Duct Sizes (Click to Apply)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+            Standard commercial duct sizes with the velocity and friction produced at your current airflow. Click a row to size the main duct to that standard round diameter. The closest size to your calculated diameter is highlighted automatically.
+        </p>
+        <div style="overflow-x: auto;">
+            <table class="ref-table" id="std-round-table">
+                <thead>
+                    <tr>
+                        <th>Round Size</th>
+                        <th>Area</th>
+                        <th id="th-std-vel">Velocity @ Flow</th>
+                        <th id="th-std-fric">Friction @ Flow</th>
+                    </tr>
+                </thead>
+                <tbody id="std-round-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Capsule / Flat Oval Duct Sizer (SMACNA Table A-3 Method)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+            Sizes flat oval (capsule) ducts using the Heyt &amp; Diaz equivalent-diameter correlation <strong>D<sub>e</sub> = 1.55 · A<sub>r</sub><sup>0.625</sup> / P<sup>0.25</sup></strong>, matching equal friction and airflow to round duct. Click a standard 2:1 size below to load it.
+        </p>
+
+        <div class="split-card-grid">
+            <div class="form-group">
+                <label for="oval-flow">Oval Duct Airflow</label>
+                <div class="input-wrapper">
+                    <input type="number" id="oval-flow" value="3400" step="50" oninput="calculateOval()">
+                    <span class="unit" id="unit-oval-flow">CFM</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="oval-fixed-val" style="color: var(--text-muted);">Standard 2:1 Sizes (Click to Apply)</label>
+                <select id="oval-standard" onchange="applyOvalStandard()">
+                    <option value="20x10">20" × 10"</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="split-card-grid">
+            <div class="form-group">
+                <label for="oval-major">Major Axis (A — Overall Width)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="oval-major" value="20" step="1" oninput="applyOvalManual(); calculateOval()">
+                    <span class="unit" id="unit-oval-major">in</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="oval-minor">Minor Axis (B — Height)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="oval-minor" value="10" step="1" oninput="applyOvalManual(); calculateOval()">
+                    <span class="unit" id="unit-oval-minor">in</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="oval-summary">
+            <div class="result-item">
+                <label style="margin:0; display:block;">Cross-Section Area</label>
+                <div class="result-val"><span id="res-oval-area">-</span><span class="sec-val" id="res-oval-area-alt"></span></div>
+            </div>
+            <div class="result-item">
+                <label style="margin:0; display:block;">Perimeter</label>
+                <div class="result-val"><span id="res-oval-perim">-</span><span class="sec-val" id="res-oval-perim-alt"></span></div>
+            </div>
+            <div class="result-item" style="border-left: 4px solid var(--accent-color);">
+                <label style="margin:0; display:block;">Equivalent Round Diameter</label>
+                <div class="result-val" style="color: var(--accent-color);"><span id="res-oval-de">-</span><span class="sec-val" id="res-oval-de-alt"></span></div>
+            </div>
+            <div class="result-item">
+                <label style="margin:0; display:block;">Face Velocity</label>
+                <div class="result-val"><span id="res-oval-vel">-</span><span class="sec-val" id="res-oval-vel-alt"></span></div>
+            </div>
+            <div class="result-item" style="grid-column: 1 / -1;">
+                <label style="margin:0; display:block;">Friction Loss @ Flow</label>
+                <div class="result-val"><span id="res-oval-fric">-</span><span class="sec-val" id="res-oval-fric-alt"></span></div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>Design Details &amp; Guidelines:</strong> Flat oval ducts fit in shallow ceiling spaces where round ducts won't — they combine round-duct flow efficiency with low height. Keep the minor axis (B) between 40% and 60% of the major axis (A); a 2:1 ratio is the industry standard (SMACNA). The equivalent diameter D<sub>e</sub> preserves friction and airflow — use it with the round-duct friction chart (Table A-3 of SMACNA HVAC Systems Duct Design, 4th Ed.). For mains use 1200&ndash;1500 FPM, branches 700&ndash;900 FPM. Fabrication requires special fittings — add transition losses where round or rectangular sections join oval runs.
+        </div>
+
+        <div class="btn-row">
+            <button class="tool-btn primary" onclick="copyOvalResults(this)">Copy Oval Results</button>
+            <button class="tool-btn" onclick="resetOvalForm()">↺ Reset Oval</button>
         </div>
     </div>
 
@@ -267,6 +416,11 @@
                 -
             </div>
         </div>
+        
+        <div class="btn-row">
+            <button class="tool-btn primary" onclick="copyText(document.getElementById('plen-result-box').innerText.replace(/\s+/g,' ').trim(), this)">Copy Plenum Size</button>
+            <button class="tool-btn" onclick="resetPlenumForm()">↺ Reset Plenum</button>
+        </div>
     </div>
 </div>
 
@@ -275,8 +429,8 @@
     const MM_PER_INCH = 25.0; 
 
     const unitConfigs = {
-        US: { flow: 3400, friction: 0.1, velocity: 1200, dim: 8, plenFlow: 3400, plenVel: 500, plenDim: 24, labelFlow: 'CFM', labelFric: 'in/100ft', labelVel: 'FPM', labelDim: 'inches', labelPlenVel: 'FPM' },
-        SI: { flow: 1600, friction: 0.8, velocity: 6, dim: 200, plenFlow: 1600, plenVel: 2.5, plenDim: 600, labelFlow: 'L/s', labelFric: 'Pa/m', labelVel: 'm/s', labelDim: 'mm', labelPlenVel: 'm/s' }
+        US: { flow: 3400, friction: 0.1, velocity: 1200, dim: 8, plenFlow: 3400, plenVel: 500, plenDim: 24, ovalA: 20, ovalB: 10, labelFlow: 'CFM', labelFric: 'in/100ft', labelVel: 'FPM', labelDim: 'inches', labelPlenVel: 'FPM' },
+        SI: { flow: 1600, friction: 0.8, velocity: 6, dim: 200, plenFlow: 1600, plenVel: 2.5, plenDim: 600, ovalA: 500, ovalB: 250, labelFlow: 'L/s', labelFric: 'Pa/m', labelVel: 'm/s', labelDim: 'mm', labelPlenVel: 'm/s' }
     };
 
     function setUnitSystem(system) {
@@ -301,6 +455,15 @@
         document.getElementById('plen-velocity').value = config.plenVel;
         document.getElementById('plen-fixed-val').value = config.plenDim;
 
+        document.getElementById('unit-oval-flow').innerText = config.labelFlow;
+        document.getElementById('unit-oval-major').innerText = config.labelDim;
+        document.getElementById('unit-oval-minor').innerText = config.labelDim;
+        document.getElementById('oval-flow').value = config.plenFlow;
+        document.getElementById('oval-major').value = config.ovalA;
+        document.getElementById('oval-minor').value = config.ovalB;
+        populateOvalStandards();
+        buildStdTable();
+
         document.getElementById('th-vel').innerText = `Target Velocity (${config.labelVel})`;
         document.getElementById('th-fric').innerText = `Friction Target (${config.labelFric})`;
 
@@ -318,17 +481,22 @@
             document.getElementById('ref-v5').innerText = "4.5 - 5.0 m/s";   document.getElementById('ref-f5').innerText = "0.65 Pa/m";
         }
 
+        document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('active'));
+
         calculate();
         calculatePlenum();
+        calculateOval();
     }
 
-    function applyRef(velUS, fricUS, fricSI) {
+    function applyRef(velUS, fricUS, fricSI, rowId) {
         const method = document.querySelector('input[name="method"]:checked').value;
         if(method === 'velocity') {
             document.getElementById('velocity').value = currentSystem === 'US' ? velUS : Math.round(velUS * 0.00508);
         } else {
             document.getElementById('friction').value = currentSystem === 'US' ? fricUS : fricSI;
         }
+        document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('active'));
+        rowId.classList.add('active');
         calculate();
     }
 
@@ -341,13 +509,25 @@
 
     function updateConstraintLabel() { calculate(); }
 
+    function clearDuctResults() {
+        document.getElementById('res-velocity').innerText = '-';
+        document.getElementById('res-friction').innerText = '-';
+        document.getElementById('res-diameter').innerText = '-';
+        document.getElementById('res-diameter-alt').innerText = '';
+        document.getElementById('res-rect-value').innerText = '-';
+        document.getElementById('res-rect-value-alt').innerText = '';
+        document.getElementById('res-rect-sub').innerText = '-';
+        document.getElementById('aspect-alert').style.display = 'none';
+        highlightClosestStd(0);
+    }
+
     function calculate() {
         let flow = parseFloat(document.getElementById('flow').value);
         const method = document.querySelector('input[name="method"]:checked').value;
         const fixedDim = document.getElementById('fixedDim').value;
         let fixedVal = parseFloat(document.getElementById('fixedValue').value);
 
-        if (!flow || flow <= 0 || !fixedVal || fixedVal <= 0) return;
+        if (!flow || flow <= 0 || !fixedVal || fixedVal <= 0) { clearDuctResults(); return; }
 
         let internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
         let internalFriction = 0;
@@ -356,7 +536,7 @@
 
         if (method === 'friction') {
             let inputFric = parseFloat(document.getElementById('friction').value);
-            if (!inputFric || inputFric <= 0) return;
+            if (!inputFric || inputFric <= 0) { clearDuctResults(); return; }
             internalFriction = currentSystem === 'SI' ? inputFric * 0.0401865 : inputFric;
             
             internalDiameter = Math.pow((0.10913 * Math.pow(internalCFM, 1.9)) / internalFriction, 1 / 5.02);
@@ -364,7 +544,7 @@
             internalVelocity = internalCFM / areaSqFt;
         } else {
             let inputVel = parseFloat(document.getElementById('velocity').value);
-            if (!inputVel || inputVel <= 0) return;
+            if (!inputVel || inputVel <= 0) { clearDuctResults(); return; }
             internalVelocity = currentSystem === 'SI' ? inputVel * 196.85 : inputVel;
             
             let areaSqFt = internalCFM / internalVelocity;
@@ -442,6 +622,9 @@
             }
             toggleAlert(parseFloat(constraintValInch), inchCalculatedSide);
         }
+
+        updateStdCells();
+        highlightClosestStd(internalDiameter);
     }
 
     function calculatePlenum() {
@@ -450,7 +633,7 @@
         let fixedType = document.getElementById('plen-fixed-type').value;
         let fixedVal = parseFloat(document.getElementById('plen-fixed-val').value);
 
-        if(!plenFlow || plenFlow <= 0 || !targetVel || targetVel <= 0 || !fixedVal || fixedVal <= 0) return;
+        if(!plenFlow || plenFlow <= 0 || !targetVel || targetVel <= 0 || !fixedVal || fixedVal <= 0) { clearPlenum(); return; }
 
         // Process target internal velocity standard
         let flowCFM = currentSystem === 'SI' ? plenFlow * 2.11888 : plenFlow;
@@ -480,11 +663,266 @@
         hMm = hInch * MM_PER_INCH;
         dMm = dInch * MM_PER_INCH;
 
+        let areaLabel = currentSystem === 'US'
+            ? `Required Face Area: ${requiredAreaSqFt.toFixed(1)} sq.ft`
+            : `Required Face Area: ${(requiredAreaSqFt * 0.0929).toFixed(2)} m²`;
+
         if(currentSystem === 'US') {
-            document.getElementById('plen-result-box').innerHTML = `W: ${wInch}" &nbsp;×&nbsp; H: ${hInch}" &nbsp;×&nbsp; D: ${dInch}" <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">Metric Conversion: ${wMm} × ${hMm} × ${dMm} mm</span>`;
+            document.getElementById('plen-result-box').innerHTML = `W: ${wInch}" &nbsp;×&nbsp; H: ${hInch}" &nbsp;×&nbsp; D: ${dInch}" <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">Metric Conversion: ${wMm} × ${hMm} × ${dMm} mm</span><span style="font-size:0.8rem; display:block; color:var(--text-muted); font-weight:400; margin-top:2px;">${areaLabel}</span>`;
         } else {
-            document.getElementById('plen-result-box').innerHTML = `W: ${wMm} mm &nbsp;×&nbsp; H: ${hMm} mm &nbsp;×&nbsp; D: ${dMm} mm <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">US-IP Conversion: ${wInch}" × ${hInch}" × ${dInch}"</span>`;
+            document.getElementById('plen-result-box').innerHTML = `W: ${wMm} mm &nbsp;×&nbsp; H: ${hMm} mm &nbsp;×&nbsp; D: ${dMm} mm <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">US-IP Conversion: ${wInch}" × ${hInch}" × ${dInch}"</span><span style="font-size:0.8rem; display:block; color:var(--text-muted); font-weight:400; margin-top:2px;">${areaLabel}</span>`;
         }
+    }
+
+    function clearPlenum() {
+        document.getElementById('plen-result-box').innerHTML = '-';
+    }
+
+    function resetMainForm() {
+        const cfg = unitConfigs[currentSystem];
+        document.getElementById('flow').value = cfg.flow;
+        document.getElementById('friction').value = cfg.friction;
+        document.getElementById('velocity').value = cfg.velocity;
+        document.getElementById('fixedValue').value = cfg.dim;
+        document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('active'));
+        toggleMethod();
+        calculate();
+    }
+
+    function resetPlenumForm() {
+        const cfg = unitConfigs[currentSystem];
+        document.getElementById('plen-flow').value = cfg.plenFlow;
+        document.getElementById('plen-velocity').value = cfg.plenVel;
+        document.getElementById('plen-fixed-val').value = cfg.plenDim;
+        calculatePlenum();
+    }
+
+    function copyResults(btn, ids) {
+        const parts = ids.map(id => document.getElementById(id).innerText).filter(t => t && t !== '-');
+        copyText(parts.join(' | '), btn);
+    }
+
+    function copyText(text, btn) {
+        const done = () => {
+            const old = btn.innerText;
+            btn.innerText = '✓ Copied';
+            setTimeout(() => { btn.innerText = old; }, 1500);
+        };
+        const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            done();
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done, fallback);
+        } else { fallback(); }
+    }
+
+    // ---- Standard round sizes ----
+    const stdSizes = {
+        US: [6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 40, 42, 48, 54, 60],
+        SI: [150, 200, 250, 300, 350, 400, 450, 500, 560, 600, 630, 710, 800, 900, 1000, 1120, 1250]
+    };
+
+    function buildStdTable() {
+        const body = document.getElementById('std-round-body');
+        const sizes = stdSizes[currentSystem];
+        document.getElementById('th-std-vel').innerText = currentSystem === 'US' ? 'Velocity @ Flow' : 'Velocity @ Flow';
+        document.getElementById('th-std-fric').innerText = currentSystem === 'US' ? 'Friction @ Flow' : 'Friction @ Flow';
+
+        let html = '';
+        sizes.forEach((size, i) => {
+            let sizeLabel, areaLabel;
+            if (currentSystem === 'US') {
+                sizeLabel = size + ' in';
+                areaLabel = (Math.PI * Math.pow(size, 2) / 4 / 144).toFixed(2) + ' ft²';
+            } else {
+                sizeLabel = size + ' mm';
+                areaLabel = (Math.PI * Math.pow(size / 1000, 2) / 4).toFixed(3) + ' m²';
+            }
+            html += `<tr class="clickable-row" id="std-row-${i}" onclick="applyStandardSize(${size})">
+                <td><span class="std-sel">✓</span> ${sizeLabel}</td>
+                <td>${areaLabel}</td>
+                <td id="std-v-${i}">-</td>
+                <td id="std-f-${i}">-</td>
+            </tr>`;
+        });
+        body.innerHTML = html;
+        updateStdCells();
+    }
+
+    function updateStdCells() {
+        const flow = parseFloat(document.getElementById('flow').value);
+        const sizes = stdSizes[currentSystem];
+        if (!flow || flow <= 0) return;
+
+        const internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
+        sizes.forEach((size, i) => {
+            const dInch = currentSystem === 'SI' ? size / MM_PER_INCH : size;
+            const areaSqFt = Math.PI * Math.pow(dInch / 12, 2) / 4;
+            const velFPM = internalCFM / areaSqFt;
+            const fricIP = 0.10913 * Math.pow(internalCFM, 1.9) / Math.pow(dInch, 5.02);
+            const velCell = document.getElementById('std-v-' + i);
+            const fricCell = document.getElementById('std-f-' + i);
+            velCell.innerText = currentSystem === 'SI'
+                ? Math.round(velFPM * 0.00508 * 10) / 10 + ' m/s'
+                : Math.round(velFPM) + ' FPM';
+            fricCell.innerText = currentSystem === 'SI'
+                ? (fricIP / 0.0401865).toFixed(2) + ' Pa/m'
+                : fricIP.toFixed(2) + ' in.wg';
+        });
+    }
+
+    function highlightClosestStd(dInch) {
+        document.querySelectorAll('#std-round-body tr').forEach(r => r.classList.remove('std-row-active'));
+        if (!dInch || dInch <= 0) return;
+        const sizes = stdSizes[currentSystem];
+        let closest = 0, bestDiff = Infinity;
+        sizes.forEach((size, i) => {
+            const v = currentSystem === 'SI' ? size / MM_PER_INCH : size;
+            const diff = Math.abs(v - dInch);
+            if (diff < bestDiff) { bestDiff = diff; closest = i; }
+        });
+        document.getElementById('std-row-' + closest).classList.add('std-row-active');
+    }
+
+    function applyStandardSize(size) {
+        const flow = parseFloat(document.getElementById('flow').value);
+        if (!flow || flow <= 0) return;
+        const internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
+        const dInch = currentSystem === 'SI' ? size / MM_PER_INCH : size;
+        const method = document.querySelector('input[name="method"]:checked').value;
+
+        if (method === 'velocity') {
+            const areaSqFt = Math.PI * Math.pow(dInch / 12, 2) / 4;
+            const velFPM = internalCFM / areaSqFt;
+            document.getElementById('velocity').value = currentSystem === 'SI'
+                ? Math.round(velFPM * 0.00508 * 10) / 10
+                : Math.round(velFPM / 10) * 10;
+        } else {
+            const fricIP = 0.10913 * Math.pow(internalCFM, 1.9) / Math.pow(dInch, 5.02);
+            document.getElementById('friction').value = currentSystem === 'SI'
+                ? Math.round((fricIP / 0.0401865) * 100) / 100
+                : Math.round(fricIP * 100) / 100;
+        }
+        calculate();
+    }
+
+    // ---- Capsule / Flat Oval ----
+    const ovalStandards = {
+        US: ['12x6','14x7','16x8','18x9','20x10','22x11','24x12','26x13','28x14','30x15','32x16','34x17','36x18','40x20','44x22','48x24'],
+        SI: ['300x150','350x175','400x200','450x225','500x250','550x275','600x300','650x325','700x350','750x375','800x400','900x450','1000x500','1200x600']
+    };
+
+    function populateOvalStandards() {
+        const sel = document.getElementById('oval-standard');
+        let html = '<option value="custom" disabled>-- Standard 2:1 Sizes --</option>';
+        ovalStandards[currentSystem].forEach(s => {
+            html += `<option value="${s}">${s.replace('x', '" × ')}"</option>`;
+        });
+        sel.innerHTML = html;
+    }
+
+    function applyOvalStandard() {
+        const val = document.getElementById('oval-standard').value;
+        if (!val || val === 'custom') return;
+        const parts = val.split('x');
+        document.getElementById('oval-major').value = parseInt(parts[0]);
+        document.getElementById('oval-minor').value = parseInt(parts[1]);
+        calculateOval();
+    }
+
+    function applyOvalManual() {
+        const sel = document.getElementById('oval-standard');
+        const A = document.getElementById('oval-major').value;
+        const B = document.getElementById('oval-minor').value;
+        const match = ovalStandards[currentSystem].find(s => s === A + 'x' + B);
+        sel.value = match || 'custom';
+    }
+
+    function calcOvalInches(A, B, flowCFM) {
+        const ar = (Math.PI * B * B) / 4 + B * (A - B);
+        const p = Math.PI * B + 2 * (A - B);
+        const de = 1.55 * Math.pow(ar, 0.625) / Math.pow(p, 0.25);
+        const areaSqFt = ar / 144;
+        const velFPM = flowCFM / areaSqFt;
+        const fricIP = 0.10913 * Math.pow(flowCFM, 1.9) / Math.pow(de, 5.02);
+        return { ar, p, de, areaSqFt, velFPM, fricIP };
+    }
+
+    function calculateOval() {
+        let flow = parseFloat(document.getElementById('oval-flow').value);
+        let A = parseFloat(document.getElementById('oval-major').value);
+        let B = parseFloat(document.getElementById('oval-minor').value);
+
+        const clear = () => {
+            ['res-oval-area','res-oval-area-alt','res-oval-perim','res-oval-perim-alt','res-oval-de','res-oval-de-alt','res-oval-vel','res-oval-vel-alt','res-oval-fric','res-oval-fric-alt'].forEach(id => {
+                document.getElementById(id).innerText = id.endsWith('alt') ? '' : '-';
+            });
+        };
+
+        if (!flow || flow <= 0 || !A || A <= 0 || !B || B <= 0 || B >= A) { clear(); return; }
+
+        const flowCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
+        const AInch = currentSystem === 'SI' ? A / MM_PER_INCH : A;
+        const BInch = currentSystem === 'SI' ? B / MM_PER_INCH : B;
+        const r = calcOvalInches(AInch, BInch, flowCFM);
+
+        const areaM2 = r.areaSqFt * 0.0929;
+        const perimMm = r.p * MM_PER_INCH;
+        const deMm = r.de * MM_PER_INCH;
+        const velMS = r.velFPM * 0.00508;
+        const fricSI = r.fricIP / 0.0401865;
+
+        if (currentSystem === 'US') {
+            document.getElementById('res-oval-area').innerText = r.areaSqFt.toFixed(2) + ' ft²';
+            document.getElementById('res-oval-area-alt').innerText = `(${areaM2.toFixed(3)} m²)`;
+            document.getElementById('res-oval-perim').innerText = r.p.toFixed(1) + ' in';
+            document.getElementById('res-oval-perim-alt').innerText = `(${Math.round(perimMm)} mm)`;
+            document.getElementById('res-oval-de').innerText = r.de.toFixed(1) + ' in';
+            document.getElementById('res-oval-de-alt').innerText = `(${Math.round(deMm)} mm)`;
+            document.getElementById('res-oval-vel').innerText = Math.round(r.velFPM) + ' FPM';
+            document.getElementById('res-oval-vel-alt').innerText = `(${velMS.toFixed(1)} m/s)`;
+            document.getElementById('res-oval-fric').innerText = r.fricIP.toFixed(3) + ' in.wg/100ft';
+            document.getElementById('res-oval-fric-alt').innerText = `(${fricSI.toFixed(2)} Pa/m)`;
+        } else {
+            document.getElementById('res-oval-area').innerText = areaM2.toFixed(3) + ' m²';
+            document.getElementById('res-oval-area-alt').innerText = `(${r.areaSqFt.toFixed(2)} ft²)`;
+            document.getElementById('res-oval-perim').innerText = Math.round(perimMm) + ' mm';
+            document.getElementById('res-oval-perim-alt').innerText = `(${r.p.toFixed(1)} in)`;
+            document.getElementById('res-oval-de').innerText = Math.round(deMm) + ' mm';
+            document.getElementById('res-oval-de-alt').innerText = `(${r.de.toFixed(1)} in)`;
+            document.getElementById('res-oval-vel').innerText = velMS.toFixed(1) + ' m/s';
+            document.getElementById('res-oval-vel-alt').innerText = `(${Math.round(r.velFPM)} FPM)`;
+            document.getElementById('res-oval-fric').innerText = fricSI.toFixed(2) + ' Pa/m';
+            document.getElementById('res-oval-fric-alt').innerText = `(${r.fricIP.toFixed(3)} in.wg/100ft)`;
+        }
+        applyOvalManual();
+    }
+
+    function resetOvalForm() {
+        const cfg = unitConfigs[currentSystem];
+        document.getElementById('oval-flow').value = cfg.plenFlow;
+        document.getElementById('oval-major').value = cfg.ovalA;
+        document.getElementById('oval-minor').value = cfg.ovalB;
+        calculateOval();
+    }
+
+    function copyOvalResults(btn) {
+        const text = [
+            'Oval Duct: ' + document.getElementById('oval-major').value + 'x' + document.getElementById('oval-minor').value + (currentSystem === 'US' ? ' in' : ' mm'),
+            'Area: ' + document.getElementById('res-oval-area').innerText + ' / ' + document.getElementById('res-oval-area-alt').innerText,
+            'Perimeter: ' + document.getElementById('res-oval-perim').innerText + ' / ' + document.getElementById('res-oval-perim-alt').innerText,
+            'Equivalent Round: ' + document.getElementById('res-oval-de').innerText + ' / ' + document.getElementById('res-oval-de-alt').innerText,
+            'Velocity: ' + document.getElementById('res-oval-vel').innerText + ' / ' + document.getElementById('res-oval-vel-alt').innerText,
+            'Friction: ' + document.getElementById('res-oval-fric').innerText + ' / ' + document.getElementById('res-oval-fric-alt').innerText
+        ].join('\n');
+        copyText(text, btn);
     }
 
     function toggleAlert(w, h) {
@@ -496,6 +934,14 @@
         setUnitSystem('US');
         toggleMethod();
     };
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('../sw.js').catch(() => {});
+        });
+    }
 </script>
 </body>
 </html>

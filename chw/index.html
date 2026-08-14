@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chilled Water Pipe Sizer</title>
+    <meta name="theme-color" content="#121824">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="apple-touch-icon" href="../icons/icon-192.png">
     <style>
         :root {
             --bg-color: #121824;
@@ -13,13 +17,22 @@
             --text-muted: #9ca3af;
             --accent-color: #3b82f6;
             --warning-color: #f59e0b;
+            --success-color: #10b981;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
-        .container { width: 100%; max-width: 500px; background: var(--panel-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        html { overflow-y: scroll; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
+        .container { width: 100%; max-width: 560px; background: var(--panel-bg); padding: 2rem; margin: 0 auto 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
         
         .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; display: inline-block; font-size: 0.9rem; }
         .back-link:hover { color: var(--text-main); }
+
+        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
+        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
+        .tool-nav a.active { color: #fff; background: var(--accent-color); }
+        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
+        .tool-nav .nav-brand:hover { background: none; }
         
         h2 { margin-bottom: 1.5rem; text-align: center; }
         
@@ -51,13 +64,40 @@
 
         .result-box { padding: 1.5rem; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
         .result-item { text-align: center; padding: 1rem; border-radius: 6px; background: var(--panel-bg); }
-        .result-item.primary h1 { color: var(--accent-color); margin: 0.5rem 0; }
+        .result-item h1 { margin: 0.5rem 0; font-size: 1.6rem; }
+        .result-item.primary h1 { color: var(--accent-color); }
+        .result-item.secondary h1 { color: var(--text-main); }
         .result-item.borderline { border: 1px dashed var(--warning-color); }
-        .result-item.borderline h1 { color: var(--warning-color); margin: 0.5rem 0; font-size: 1.5rem; }
+        .result-item.borderline h1 { color: var(--warning-color); font-size: 1.5rem; }
         .result-item p { font-size: 0.85rem; color: var(--text-muted); }
+
+        .btn-row { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+        .reset-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .reset-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
+
+        .copy-btn { width: 100%; margin-top: 0.5rem; padding: 0.6rem; background: var(--bg-color); border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+        .copy-btn:hover { background: var(--accent-color); color: #fff; }
+
+        .table-toggle { width: 100%; margin-top: 0.5rem; padding: 0.6rem; background: none; border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .table-toggle:hover { color: var(--text-main); border-color: var(--text-muted); }
+
+        .sizing-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+        .sizing-table th, .sizing-table td { text-align: center; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border-color); }
+        .sizing-table th { color: var(--text-muted); font-weight: 600; background: rgba(0,0,0,0.15); }
+        .sizing-table tr.row-safe { background: rgba(16, 185, 129, 0.12); color: var(--success-color); font-weight: 600; }
+        .sizing-table tr.row-borderline { background: rgba(245, 158, 11, 0.12); color: var(--warning-color); font-weight: 600; }
     </style>
 </head>
 <body>
+
+<nav class="tool-nav">
+    <a href="../index.html" class="nav-brand">HVAC Suite</a>
+    <a href="../y/index.html">Y-Piece</a>
+    <a href="../duct/index.html">Duct Sizer</a>
+    <a href="../psy/index.html">Psychrometrics</a>
+    <a href="../chw/index.html" class="active">Chilled Water</a>
+    <a href="../conv/index.html">Converter</a>
+</nav>
 
 <div class="container">
     
@@ -86,6 +126,10 @@
                 <option value="5">Friction Loss: 5 ft / 100 ft</option>
             </select>
         </div>
+    </div>
+
+    <div class="btn-row">
+        <button class="reset-btn" onclick="resetForm()">↺ Reset to Defaults</button>
     </div>
     
     <div class="result-box" id="resultContainer">
@@ -154,28 +198,97 @@
         }
 
         const safePipe = adjustedTable[safeIndex];
+        const flowGpm = tr * flowStandard;
+        let borderlineIndex = -1;
+        if (safeIndex > 0 && tr <= (adjustedTable[safeIndex - 1].calcTons * 1.15)) {
+            borderlineIndex = safeIndex - 1;
+        }
+
         let htmlOutput = `
             <div class="result-item primary">
                 <p>Safe Recommendation</p>
                 <h1>${safePipe.inch}" (${safePipe.mm} mm)</h1>
                 <p>Max Capacity: ${safePipe.calcTons} TR</p>
             </div>
+            <div class="result-item secondary">
+                <p>Calculated Flow</p>
+                <h1>${flowGpm.toLocaleString('en-US')} GPM</h1>
+            </div>
         `;
 
-        if (safeIndex > 0) {
-            const smallerPipe = adjustedTable[safeIndex - 1];
-            if (tr <= (smallerPipe.calcTons * 1.15)) {
-                htmlOutput += `
-                    <div class="result-item borderline">
-                        <p>Borderline Option (Within 15% buffer)</p>
-                        <h1>${smallerPipe.inch}" (${smallerPipe.mm} mm)</h1>
-                        <p>Max Capacity: ${smallerPipe.calcTons} TR</p>
-                    </div>
-                `;
-            }
+        if (borderlineIndex !== -1) {
+            const smallerPipe = adjustedTable[borderlineIndex];
+            htmlOutput += `
+                <div class="result-item borderline">
+                    <p>Borderline Option (Within 15% buffer)</p>
+                    <h1>${smallerPipe.inch}" (${smallerPipe.mm} mm)</h1>
+                    <p>Max Capacity: ${smallerPipe.calcTons} TR</p>
+                </div>
+            `;
         }
 
+        let tableHtml = `
+            <button class="table-toggle" onclick="toggleSizingTable(this)">Show Full Sizing Table ▾</button>
+            <table class="sizing-table">
+                <thead><tr><th>Pipe Size</th><th>Metric</th><th>Max Capacity</th></tr></thead>
+                <tbody>
+        `;
+        adjustedTable.forEach((row, i) => {
+            const cls = i === safeIndex ? 'row-safe' : (i === borderlineIndex ? 'row-borderline' : '');
+            tableHtml += `<tr class="${cls}"><td>${row.inch}"</td><td>${row.mm} mm</td><td>${row.calcTons} TR</td></tr>`;
+        });
+        tableHtml += '</tbody></table>';
+
+        htmlOutput += tableHtml;
+        htmlOutput += '<button class="copy-btn" onclick="copyResults(this)">Copy Results</button>';
         resultContainer.innerHTML = htmlOutput;
+    }
+
+    function toggleSizingTable(btn) {
+        const table = document.querySelector('.sizing-table');
+        const hidden = table.style.display === 'none';
+        table.style.display = hidden ? 'table' : 'none';
+        btn.innerText = hidden ? 'Hide Full Sizing Table ▴' : 'Show Full Sizing Table ▾';
+    }
+
+    function copyResults(btn) {
+        const text = document.getElementById('resultContainer').innerText.replace(/\s+/g, ' ').trim();
+        safeCopy(text, btn);
+    }
+
+    function safeCopy(text, btn) {
+        const done = () => {
+            const old = btn.innerText;
+            btn.innerText = '✓ Copied';
+            setTimeout(() => { btn.innerText = old; }, 1500);
+        };
+        const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            done();
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done, fallback);
+        } else { fallback(); }
+    }
+
+    function resetForm() {
+        document.getElementById('tonnage').value = '';
+        document.getElementById('gpmPerTr').value = '2.4';
+        document.getElementById('friction').value = '4';
+        calculatePipe();
+    }
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('../sw.js').catch(() => {});
+        });
     }
 </script>
 </body>

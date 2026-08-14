@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Psychrometric Calculator Pro</title>
+    <meta name="theme-color" content="#121824">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="apple-touch-icon" href="../icons/icon-192.png">
     <style>
         :root {
             --bg-color: #121824;
@@ -18,8 +22,9 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
-        .wrapper { width: 100%; max-width: 1100px; }
+        html { overflow-y: scroll; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
+        .wrapper { width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
         header { margin-bottom: 2rem; text-align: center; }
         header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
         header p { color: var(--text-muted); font-size: 0.95rem; }
@@ -63,9 +68,43 @@
         .highlight-item .result-val { color: var(--highlight-color); }
 
         .alert { font-size: 0.8rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: none; }
+
+        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1rem; display: inline-block; font-size: 0.9rem; }
+        .back-link:hover { color: var(--text-main); }
+
+        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
+        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
+        .tool-nav a.active { color: #fff; background: var(--accent-color); }
+        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
+        .tool-nav .nav-brand:hover { background: none; }
+
+        .preset-banner { display: none; margin-top: 0.75rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; }
+        .preset-banner .pb-title { color: var(--success-color); font-weight: 600; margin-bottom: 0.3rem; }
+        .preset-banner .pb-values { color: var(--text-main); display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .preset-banner .pb-values span { background: rgba(0,0,0,0.2); padding: 0.2rem 0.6rem; border-radius: 4px; }
+        .pb-copy { margin-top: 0.5rem; padding: 0.35rem 0.8rem; background: none; border: 1px solid var(--success-color); color: var(--success-color); border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
+        .pb-copy:hover { background: var(--success-color); color: #fff; }
+
+        .input-invalid input { border-color: #f87171 !important; box-shadow: 0 0 0 1px #f87171; }
+
+        .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+        .tool-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .tool-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
+        .tool-btn.primary { color: var(--accent-color); border-color: var(--accent-color); }
+        .tool-btn.primary:hover { background: var(--accent-color); color: #fff; }
     </style>
 </head>
 <body>
+
+<nav class="tool-nav">
+    <a href="../index.html" class="nav-brand">HVAC Suite</a>
+    <a href="../y/index.html">Y-Piece</a>
+    <a href="../duct/index.html">Duct Sizer</a>
+    <a href="../psy/index.html" class="active">Psychrometrics</a>
+    <a href="../chw/index.html">Chilled Water</a>
+    <a href="../conv/index.html">Converter</a>
+</nav>
 
 <div class="wrapper">
     <header>
@@ -93,6 +132,15 @@
                     <option value="hyderabad">Hyderabad (Hot & Dry / Composite)</option>
                     <option value="bangalore">Bengaluru (Temperate / Mild Peak)</option>
                 </select>
+                <div class="preset-banner" id="preset-banner">
+                    <div class="pb-title" id="pb-title">Loaded Preset</div>
+                    <div class="pb-values">
+                        <span id="pb-db">DB: -</span>
+                        <span id="pb-wb">WB: -</span>
+                        <span id="pb-alt">Alt: -</span>
+                    </div>
+                    <button class="pb-copy" onclick="copyPresetData(this)">Copy Preset Data</button>
+                </div>
             </div>
             
             <div class="split-card-grid">
@@ -220,6 +268,10 @@
 
             </div>
             <div id="saturation-alert" class="alert">Warning: Inputs out of logical range bounds (Condensation / Supersaturation state encountered).</div>
+            <div class="btn-row">
+                <button class="tool-btn primary" onclick="copyAllResults(this)">Copy All Results</button>
+                <button class="tool-btn" onclick="resetForm()">↺ Reset to Defaults</button>
+            </div>
         </div>
     </div>
 </div>
@@ -244,7 +296,15 @@
 
     function loadIshraePreset() {
         const cityKey = document.getElementById('ishraePreset').value;
-        if (cityKey === 'custom') return;
+        if (cityKey === 'custom') {
+            document.getElementById('preset-banner').style.display = 'none';
+            return;
+        }
+
+        const cityNames = {
+            delhi: 'New Delhi', mumbai: 'Mumbai', chennai: 'Chennai',
+            kolkata: 'Kolkata', hyderabad: 'Hyderabad', bangalore: 'Bengaluru'
+        };
 
         const data = ishraeCities[cityKey][currentSystem.toLowerCase()];
 
@@ -258,11 +318,30 @@
         document.getElementById('altitude').value = data.alt.toFixed(2);
         document.getElementById('wbTemp').value = data.wb.toFixed(2);
 
+        document.getElementById('pb-title').innerText = `Loaded Preset: ${cityNames[cityKey]} (ISHRAE 1.0% Peak)`;
+        const unitT = currentSystem === 'SI' ? '°C' : '°F';
+        const unitA = currentSystem === 'SI' ? 'm' : 'ft';
+        document.getElementById('pb-db').innerText = `DB: ${data.db.toFixed(1)} ${unitT}`;
+        document.getElementById('pb-wb').innerText = `WB: ${data.wb.toFixed(1)} ${unitT}`;
+        document.getElementById('pb-alt').innerText = `Alt: ${data.alt.toFixed(0)} ${unitA}`;
+        document.getElementById('preset-banner').style.display = 'block';
+
         calculate();
+    }
+
+    function copyPresetData(btn) {
+        const text = [
+            document.getElementById('pb-title').innerText,
+            document.getElementById('pb-db').innerText,
+            document.getElementById('pb-wb').innerText,
+            document.getElementById('pb-alt').innerText
+        ].join(' | ');
+        copyText(text, btn);
     }
 
     function resetPresetDropdown() {
         document.getElementById('ishraePreset').value = 'custom';
+        document.getElementById('preset-banner').style.display = 'none';
     }
 
     function setUnitSystem(system) {
@@ -309,6 +388,59 @@
     function getDewPointCelsius(vPressMbar) {
         const c = Math.log10(vPressMbar / 6.1078);
         return (237.3 * c) / (7.5 - c);
+    }
+
+    function setInvalidHighlight(show) {
+        ['dbTemp', 'wbTemp', 'dpTemp'].forEach(id => {
+            document.getElementById(id).closest('.form-group').classList.toggle('input-invalid', show);
+        });
+    }
+
+    function copyAllResults(btn) {
+        const labels = document.querySelectorAll('.results-list .result-item');
+        const lines = [];
+        labels.forEach(item => {
+            const labelEl = item.querySelector('label');
+            const valEl = item.querySelector('.result-val');
+            const label = labelEl ? labelEl.innerText : '';
+            const val = valEl ? valEl.innerText.replace(/\n/g, ' ').replace(/\s+/g, ' ') : '';
+            if (label || val) lines.push(label ? `${label}: ${val}` : val);
+        });
+        copyText(lines.join('\n'), btn);
+    }
+
+    function copyText(text, btn) {
+        const done = () => {
+            const old = btn.innerText;
+            btn.innerText = '✓ Copied';
+            setTimeout(() => { btn.innerText = old; }, 1500);
+        };
+        const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            done();
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done, fallback);
+        } else { fallback(); }
+    }
+
+    function resetForm() {
+        const config = systemConfigs[currentSystem];
+        document.getElementById('dbTemp').value = config.db.toFixed(2);
+        document.getElementById('altitude').value = config.alt.toFixed(2);
+        document.getElementById('wbTemp').value = config.wb.toFixed(2);
+        document.getElementById('relHum').value = config.rh.toFixed(2);
+        document.getElementById('dpTemp').value = config.dp.toFixed(2);
+        const rhRadio = document.querySelector('input[name="secondaryParam"][value="rh"]');
+        rhRadio.checked = true;
+        toggleInputs();
+        resetPresetDropdown();
     }
 
     function calculate() {
@@ -386,6 +518,7 @@
         }
 
         document.getElementById('saturation-alert').style.display = isInvalidState ? 'block' : 'none';
+        setInvalidHighlight(isInvalidState);
 
         let outPressBar = pressMbar / 1000;
         let outPressInHg = pressMbar * 0.0295300; 
@@ -440,6 +573,14 @@
     window.onload = function() {
         setUnitSystem('IP'); 
     };
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('../sw.js').catch(() => {});
+        });
+    }
 </script>
 </body>
 </html>

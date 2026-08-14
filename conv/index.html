@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HVAC Unit Converter</title>
+    <meta name="theme-color" content="#121824">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="apple-touch-icon" href="../icons/icon-192.png">
     <style>
         :root {
             --bg-color: #121824;
@@ -14,19 +18,44 @@
             --accent-color: #3b82f6;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; padding: 2rem; }
-        .container { width: 100%; max-width: 500px; background: var(--panel-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        html { overflow-y: scroll; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
+        .container { width: 100%; max-width: 720px; background: var(--panel-bg); padding: 2rem; margin: 0 auto 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
         h2 { margin-bottom: 1.5rem; text-align: center; }
         .conv-group { margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
         label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; font-weight: bold; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
         .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.8rem; }
+        .grid-inputs.grid-3 { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 520px) { .grid-inputs, .grid-inputs.grid-3 { grid-template-columns: 1fr; } }
         .input-col { display: flex; flex-direction: column; gap: 0.3rem; }
         .input-col span { font-size: 0.75rem; color: var(--text-muted); }
         input { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: white; border-radius: 6px; }
         input:focus { outline: none; border-color: var(--accent-color); }
+
+        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; display: inline-block; font-size: 0.9rem; }
+        .back-link:hover { color: var(--text-main); }
+
+        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
+        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
+        .tool-nav a.active { color: #fff; background: var(--accent-color); }
+        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
+        .tool-nav .nav-brand:hover { background: none; }
+
+        .swap-btn { margin: 0.4rem 0 0.8rem 0; padding: 0.35rem 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
+        .swap-btn:hover { color: var(--accent-color); border-color: var(--accent-color); }
     </style>
 </head>
 <body>
+
+<nav class="tool-nav">
+    <a href="../index.html" class="nav-brand">HVAC Suite</a>
+    <a href="../y/index.html">Y-Piece</a>
+    <a href="../duct/index.html">Duct Sizer</a>
+    <a href="../psy/index.html">Psychrometrics</a>
+    <a href="../chw/index.html">Chilled Water</a>
+    <a href="../conv/index.html" class="active">Converter</a>
+</nav>
 
 <div class="container">
     <h2>Unit Converter</h2>
@@ -34,21 +63,23 @@
     <!-- Length -->
     <div class="conv-group">
         <label>Length (1 inch = 25 mm)</label>
-        <div class="grid-inputs">
+        <div class="grid-inputs grid-3">
             <div class="input-col"><span>Millimeters (mm)</span><input type="number" id="mm" oninput="convert('mm')"></div>
             <div class="input-col"><span>Inches (in)</span><input type="number" id="inch" oninput="convert('inch')"></div>
+            <div class="input-col"><span>Feet (ft)</span><input type="number" id="ft" oninput="convert('ft')"></div>
         </div>
-        <div class="input-col" style="width: 48%;"><span>Feet (ft)</span><input type="number" id="ft" oninput="convert('ft')"></div>
+        <button class="swap-btn" onclick="swapValues('mm', 'inch')">⇄ Swap mm / in</button>
     </div>
 
     <!-- Area -->
     <div class="conv-group">
         <label>Area (1 inch = 25 mm)</label>
-        <div class="grid-inputs">
+        <div class="grid-inputs grid-3">
             <div class="input-col"><span>Sq. Millimeters (sqmm)</span><input type="number" id="sqmm" oninput="convert('sqmm')"></div>
             <div class="input-col"><span>Sq. Feet (sqft)</span><input type="number" id="sqft" oninput="convert('sqft')"></div>
+            <div class="input-col"><span>Sq. Meters (sqm)</span><input type="number" id="sqm" oninput="convert('sqm')"></div>
         </div>
-        <div class="input-col" style="width: 48%;"><span>Sq. Meters (sqm)</span><input type="number" id="sqm" oninput="convert('sqm')"></div>
+        <button class="swap-btn" onclick="swapValues('sqmm', 'sqft')">⇄ Swap sqmm / sqft</button>
     </div>
 
     <!-- Flow -->
@@ -58,13 +89,67 @@
             <div class="input-col"><span>Litres/sec (L/s)</span><input type="number" id="ls" oninput="convert('ls')"></div>
             <div class="input-col"><span>CFM</span><input type="number" id="cfm" oninput="convert('cfm')"></div>
         </div>
+        <button class="swap-btn" onclick="swapValues('ls', 'cfm')">⇄ Swap L/s / CFM</button>
+    </div>
+
+    <!-- Temperature -->
+    <div class="conv-group">
+        <label>Temperature (°C &harr; °F &harr; K)</label>
+        <div class="grid-inputs grid-3">
+            <div class="input-col"><span>Celsius (°C)</span><input type="number" id="tc" oninput="convert('tc')"></div>
+            <div class="input-col"><span>Fahrenheit (°F)</span><input type="number" id="tf" oninput="convert('tf')"></div>
+            <div class="input-col"><span>Kelvin (K)</span><input type="number" id="tk" oninput="convert('tk')"></div>
+        </div>
+        <button class="swap-btn" onclick="swapValues('tc', 'tf')">⇄ Swap °C / °F</button>
+    </div>
+
+    <!-- Pressure -->
+    <div class="conv-group">
+        <label>Pressure (kPa &harr; bar &harr; psi &harr; in.wg)</label>
+        <div class="grid-inputs">
+            <div class="input-col"><span>Kilopascal (kPa)</span><input type="number" id="kpa" oninput="convert('kpa')"></div>
+            <div class="input-col"><span>Bar</span><input type="number" id="bar" oninput="convert('bar')"></div>
+            <div class="input-col"><span>PSI</span><input type="number" id="psi" oninput="convert('psi')"></div>
+            <div class="input-col"><span>Inches Water Gauge (in.wg)</span><input type="number" id="inwg" oninput="convert('inwg')"></div>
+        </div>
+        <button class="swap-btn" onclick="swapValues('kpa', 'psi')">⇄ Swap kPa / psi</button>
+        <button class="swap-btn" onclick="swapValues('bar', 'inwg')">⇄ Swap bar / in.wg</button>
+    </div>
+
+    <!-- Cooling Power -->
+    <div class="conv-group">
+        <label>Cooling Power (kW &harr; TR &harr; HP)</label>
+        <div class="grid-inputs grid-3">
+            <div class="input-col"><span>Kilowatt (kW)</span><input type="number" id="kw" oninput="convert('kw')"></div>
+            <div class="input-col"><span>Tons of Refrigeration (TR)</span><input type="number" id="tr" oninput="convert('tr')"></div>
+            <div class="input-col"><span>Horsepower (HP)</span><input type="number" id="hp" oninput="convert('hp')"></div>
+        </div>
+        <button class="swap-btn" onclick="swapValues('kw', 'tr')">⇄ Swap kW / TR</button>
     </div>
 </div>
 
 <script>
+    const groupMap = {
+        mm: ['inch', 'ft'], inch: ['mm', 'ft'], ft: ['mm', 'inch'],
+        sqmm: ['sqft', 'sqm'], sqft: ['sqmm', 'sqm'], sqm: ['sqmm', 'sqft'],
+        ls: ['cfm'], cfm: ['ls'],
+        tc: ['tf', 'tk'], tf: ['tc', 'tk'], tk: ['tc', 'tf'],
+        kpa: ['bar', 'psi', 'inwg'], bar: ['kpa', 'psi', 'inwg'], psi: ['kpa', 'bar', 'inwg'], inwg: ['kpa', 'bar', 'psi'],
+        kw: ['tr', 'hp'], tr: ['kw', 'hp'], hp: ['kw', 'tr']
+    };
+
+    function swapValues(a, b) {
+        const va = document.getElementById(a).value;
+        const vb = document.getElementById(b).value;
+        document.getElementById(a).value = vb;
+        document.getElementById(b).value = va;
+        if (va) convert(a); else if (vb) convert(b);
+    }
+
     function convert(source) {
         const val = parseFloat(document.getElementById(source).value);
-        if (isNaN(val)) return;
+        const others = groupMap[source] || [];
+        if (isNaN(val)) { others.forEach(id => document.getElementById(id).value = ''); return; }
 
         // Length
         if (source === 'mm') {
@@ -96,6 +181,64 @@
         } else if (source === 'cfm') {
             document.getElementById('ls').value = (val / 2.1189).toFixed(2);
         }
+
+        // Temperature
+        else if (source === 'tc') {
+            document.getElementById('tf').value = (val * 9 / 5 + 32).toFixed(2);
+            document.getElementById('tk').value = (val + 273.15).toFixed(2);
+        } else if (source === 'tf') {
+            const c = (val - 32) * 5 / 9;
+            document.getElementById('tc').value = c.toFixed(2);
+            document.getElementById('tk').value = (c + 273.15).toFixed(2);
+        } else if (source === 'tk') {
+            const c = val - 273.15;
+            document.getElementById('tc').value = c.toFixed(2);
+            document.getElementById('tf').value = (c * 9 / 5 + 32).toFixed(2);
+        }
+
+        // Pressure (kPa base)
+        else if (source === 'kpa') {
+            document.getElementById('bar').value = (val / 100).toFixed(4);
+            document.getElementById('psi').value = (val * 0.145038).toFixed(3);
+            document.getElementById('inwg').value = (val * 4.01865).toFixed(2);
+        } else if (source === 'bar') {
+            const kpa = val * 100;
+            document.getElementById('kpa').value = kpa.toFixed(2);
+            document.getElementById('psi').value = (kpa * 0.145038).toFixed(3);
+            document.getElementById('inwg').value = (kpa * 4.01865).toFixed(2);
+        } else if (source === 'psi') {
+            const kpa = val * 6.89476;
+            document.getElementById('kpa').value = kpa.toFixed(3);
+            document.getElementById('bar').value = (kpa / 100).toFixed(5);
+            document.getElementById('inwg').value = (kpa * 4.01865).toFixed(2);
+        } else if (source === 'inwg') {
+            const kpa = val * 0.249089;
+            document.getElementById('kpa').value = kpa.toFixed(3);
+            document.getElementById('bar').value = (kpa / 100).toFixed(5);
+            document.getElementById('psi').value = (kpa * 0.145038).toFixed(3);
+        }
+
+        // Cooling Power (kW base)
+        else if (source === 'kw') {
+            document.getElementById('tr').value = (val / 3.51685).toFixed(2);
+            document.getElementById('hp').value = (val / 0.7457).toFixed(2);
+        } else if (source === 'tr') {
+            const kw = val * 3.51685;
+            document.getElementById('kw').value = kw.toFixed(2);
+            document.getElementById('hp').value = (kw / 0.7457).toFixed(2);
+        } else if (source === 'hp') {
+            const kw = val * 0.7457;
+            document.getElementById('kw').value = kw.toFixed(2);
+            document.getElementById('tr').value = (kw / 3.51685).toFixed(2);
+        }
+    }
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('../sw.js').catch(() => {});
+        });
     }
 </script>
 </body>
