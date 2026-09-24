@@ -567,7 +567,11 @@
       queueProbe(e.clientX, e.clientY);
     });
     hit.addEventListener('pointermove', (e) => queueProbe(e.clientX, e.clientY));
-    hit.addEventListener('pointerleave', hideProbe);
+    // Only a departing mouse cursor should dismiss the probe. After a touch
+    // ends the browser fires pointerleave immediately, which would wipe the
+    // readout before it could be read; on touch the values persist until the
+    // next probe or a redraw.
+    hit.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hideProbe(); });
     hit.addEventListener('pointercancel', hideProbe);
   }
 
