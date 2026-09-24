@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found · HVAC Design Suite</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1120">
+<link rel="icon" href="/hvac/icons/icon.svg" type="image/svg+xml">
+<style>
+:root{
+  --ink:#0a1120; --panel:#101a2c; --line:#1e2c44; --paper:#eaf0f8;
+  --muted:#8b98b0; --muted-2:#5c6a84; --copper:#d38a4d; --copper-strong:#e6a165;
+  --copper-wash:rgba(211,138,77,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;
+  background:var(--ink);background-image:
+    linear-gradient(rgba(96,150,214,0.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(96,150,214,0.07) 1px,transparent 1px);
+  background-size:28px 28px;color:var(--paper);
+  font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.55;
+}
+.wrap{width:100%;max-width:620px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.75rem}
+.kicker{color:var(--copper);font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+h1{font-size:1.6rem;margin:.5rem 0 .75rem}
+p{color:var(--muted);font-size:.92rem}
+.oldnew{margin:1.1rem 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:flex;align-items:center;gap:.6rem;padding:.55rem .85rem;border-bottom:1px solid rgba(30,44,68,.6);font-size:.85rem}
+.row:last-child{border-bottom:none}
+.row code{font-family:ui-monospace,Consolas,monospace;color:var(--muted-2);text-decoration:line-through;white-space:nowrap}
+.row span{color:var(--muted);flex:1}
+.row b{color:var(--copper-strong);font-weight:600;font-family:ui-monospace,Consolas,monospace;white-space:nowrap}
+.tools{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.25rem}
+a.tool{
+  display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;
+  border:1px solid var(--line);background:#0c1626;color:var(--paper);
+  padding:.5rem .85rem;border-radius:8px;font-size:.84rem;font-weight:600;
+}
+a.tool:hover{border-color:var(--copper);color:var(--copper-strong)}
+.home{
+  display:inline-flex;align-items:center;margin-top:1.4rem;padding:.6rem 1.1rem;
+  background:var(--copper);color:#2a1305;text-decoration:none;border-radius:8px;
+  font-size:.86rem;font-weight:700;
+}
+.home:hover{background:var(--copper-strong)}
+.note{margin-top:1.25rem;font-size:.76rem;color:var(--muted-2)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="card">
+    <div class="kicker">Error 404</div>
+    <h1>That page doesn't exist</h1>
+    <p>The tool folders were renamed to longer, clearer names, so older links and bookmarks now point here. Here is where everything moved:</p>
+
+    <div class="oldnew">
+      <div class="row"><code>/y/</code><span>Y-Piece Duct Splitter</span><b>/y-piece/</b></div>
+      <div class="row"><code>/duct/</code><span>Duct &amp; Plenum Sizer</span><b>/duct-sizer/</b></div>
+      <div class="row"><code>/psy/</code><span>Psychrometric Calculator</span><b>/psychrometrics/</b></div>
+      <div class="row"><code>/chw/</code><span>Chilled Water Pipe Sizer</span><b>/chilled-water/</b></div>
+      <div class="row"><code>/conv/</code><span>Unit Converter</span><b>/converter/</b></div>
+    </div>
+
+    <div class="tools">
+      <a class="tool" href="/hvac/y-piece/">Y-Piece</a>
+      <a class="tool" href="/hvac/duct-sizer/">Duct Sizer</a>
+      <a class="tool" href="/hvac/psychrometrics/">Psychrometrics</a>
+      <a class="tool" href="/hvac/chilled-water/">Chilled Water</a>
+      <a class="tool" href="/hvac/converter/">Converter</a>
+    </div>
+
+    <a class="home" href="/hvac/">← Back to the dashboard</a>
+
+    <p class="note">Calculations shared before the rename can't be restored automatically — open the tool and re-enter the values, then use <b>Share</b> to get a link that uses the new address.</p>
+  </div>
+</main>
+</body>
+</html>

@@ -6,7 +6,7 @@
  * cache thereafter; if the very first visit was offline, the page still
  * renders with its fallback font stack.
  */
-const CACHE_VERSION = 'hvac-suite-v3';
+const CACHE_VERSION = 'hvac-suite-v4';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -20,11 +20,11 @@ const PRECACHE_URLS = [
   './icons/apple-touch-icon.png',
   './icons/favicon-16.png',
   './icons/favicon-32.png',
-  './y/index.html',
-  './duct/index.html',
-  './psy/index.html',
-  './chw/index.html',
-  './conv/index.html',
+  './y-piece/index.html',
+  './duct-sizer/index.html',
+  './psychrometrics/index.html',
+  './chilled-water/index.html',
+  './converter/index.html',
 ];
 
 self.addEventListener('install', (event) => {

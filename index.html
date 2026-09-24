@@ -19,11 +19,11 @@
 
 <nav class="tool-nav" aria-label="Suite navigation">
   <a href="index.html" class="nav-brand"><span class="mark" aria-hidden="true"></span>HVAC Suite</a>
-  <a href="./y/index.html" class="nav-link">Y-Piece</a>
-  <a href="./duct/index.html" class="nav-link">Duct Sizer</a>
-  <a href="./psy/index.html" class="nav-link">Psychrometrics</a>
-  <a href="./chw/index.html" class="nav-link">Chilled Water</a>
-  <a href="./conv/index.html" class="nav-link">Converter</a>
+  <a href="./y-piece/index.html" class="nav-link" data-tool="y-piece">Y-Piece</a>
+  <a href="./duct-sizer/index.html" class="nav-link" data-tool="duct-sizer">Duct Sizer</a>
+  <a href="./psychrometrics/index.html" class="nav-link" data-tool="psychrometrics">Psychrometrics</a>
+  <a href="./chilled-water/index.html" class="nav-link" data-tool="chilled-water">Chilled Water</a>
+  <a href="./converter/index.html" class="nav-link" data-tool="converter">Converter</a>
   <span class="nav-spacer"></span>
   <span class="nav-status"><span class="dot"></span><span class="label">Ready offline</span></span>
 </nav>
@@ -37,31 +37,31 @@
   </header>
 
   <div class="tool-grid" id="toolGrid">
-    <a href="./y/index.html" class="tool-card" data-tool="y">
+    <a href="./y-piece/index.html" class="tool-card" data-tool="y-piece">
       <span class="icon" aria-hidden="true"></span>
       <h3>Y-Piece Duct Splitter</h3>
       <p>ANS throat sizing for branch takeoffs, remaining-flow and velocity checks, with a live proportioned schematic.</p>
       <span class="go">Open tool →</span>
     </a>
-    <a href="./duct/index.html" class="tool-card" data-tool="duct">
+    <a href="./duct-sizer/index.html" class="tool-card" data-tool="duct-sizer">
       <span class="icon" aria-hidden="true"></span>
       <h3>Duct &amp; Plenum Sizer</h3>
       <p>Equal-friction and constant-velocity round/rectangular sizing, standard-size tables, flat-oval ducts, plenum boxes.</p>
       <span class="go">Open tool →</span>
     </a>
-    <a href="./psy/index.html" class="tool-card" data-tool="psy">
+    <a href="./psychrometrics/index.html" class="tool-card" data-tool="psychrometrics">
       <span class="icon" aria-hidden="true"></span>
       <h3>Psychrometric Calculator</h3>
       <p>Full moist-air properties from any two inputs, an interactive chart, and ISHRAE peak-summer city presets.</p>
       <span class="go">Open tool →</span>
     </a>
-    <a href="./chw/index.html" class="tool-card" data-tool="chw">
+    <a href="./chilled-water/index.html" class="tool-card" data-tool="chilled-water">
       <span class="icon" aria-hidden="true"></span>
       <h3>Chilled Water Pipe Sizer</h3>
       <p>Pipe selection from AHU tonnage using live friction &amp; velocity hydraulics, not a fixed lookup table.</p>
       <span class="go">Open tool →</span>
     </a>
-    <a href="./conv/index.html" class="tool-card" data-tool="conv">
+    <a href="./converter/index.html" class="tool-card" data-tool="converter">
       <span class="icon" aria-hidden="true"></span>
       <h3>Unit Converter</h3>
       <p>Length, area, flow, velocity, water flow, temperature, pressure and cooling-capacity conversions, all live.</p>
@@ -80,10 +80,9 @@
 <script>
   HvacSuite.initNav();
 
-  const icons = { y: HvacSuite.ICONS.y, duct: HvacSuite.ICONS.duct, psy: HvacSuite.ICONS.psy, chw: HvacSuite.ICONS.chw, conv: HvacSuite.ICONS.conv };
   document.querySelectorAll('.tool-card').forEach((card) => {
     const id = card.getAttribute('data-tool');
-    card.querySelector('.icon').innerHTML = icons[id] || '';
+    card.querySelector('.icon').innerHTML = HvacSuite.ICONS[id] || '';
   });
 
   // mark the most recently used tool

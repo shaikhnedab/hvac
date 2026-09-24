@@ -18,10 +18,10 @@
     { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Y-Piece Duct Splitter", "url": "./y/index.html" },
-    { "name": "Duct & Plenum Sizer", "url": "./duct/index.html" },
-    { "name": "Psychrometric Calculator", "url": "./psy/index.html" },
-    { "name": "Chilled Water Pipe Sizer", "url": "./chw/index.html" },
-    { "name": "Unit Converter", "url": "./conv/index.html" }
+    { "name": "Y-Piece Duct Splitter", "url": "./y-piece/index.html" },
+    { "name": "Duct & Plenum Sizer", "url": "./duct-sizer/index.html" },
+    { "name": "Psychrometric Calculator", "url": "./psychrometrics/index.html" },
+    { "name": "Chilled Water Pipe Sizer", "url": "./chilled-water/index.html" },
+    { "name": "Unit Converter", "url": "./converter/index.html" }
   ]
 }

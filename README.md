@@ -68,7 +68,7 @@ Every calculation tool has a **Share** button. It writes the current inputs and 
 system into the URL and copies it:
 
 ```
-https://shaikhnedab.github.io/hvac/duct/?unit=ip&method=ef&dQ=2000&dF=0.1&dLock=12
+https://shaikhnedab.github.io/hvac/duct-sizer/?unit=ip&method=ef&dQ=2000&dF=0.1&dLock=12
 ```
 
 Opening that link restores the exact case, including the locked catalog size. Tool
@@ -104,11 +104,11 @@ recommended so the service worker and share links behave normally.
 
 | Tool | Path | What it does |
 |---|---|---|
-| Y-Piece Duct Splitter | `/y/` | ANS throat sizing for a branch takeoff, remaining-flow and three velocity checks, live SVG schematic |
-| Duct & Plenum Sizer | `/duct/` | Equal-friction / constant-velocity round & rectangular sizing, standard-size tables, flat-oval ducts, plenum boxes |
-| Psychrometric Calculator | `/psy/` | Full moist-air state from dry-bulb + RH/WB/DP, live psychrometric chart, ISHRAE city presets |
-| Chilled Water Pipe Sizer | `/chw/` | AHU tonnage → pipe size, from live Darcy–Weisbach hydraulics |
-| Unit Converter | `/conv/` | Length, area, air flow, velocity, water flow, temperature, pressure, cooling power — every field live at once |
+| Y-Piece Duct Splitter | `/y-piece/` | ANS throat sizing for a branch takeoff, remaining-flow and three velocity checks, live SVG schematic |
+| Duct & Plenum Sizer | `/duct-sizer/` | Equal-friction / constant-velocity round & rectangular sizing, standard-size tables, flat-oval ducts, plenum boxes |
+| Psychrometric Calculator | `/psychrometrics/` | Full moist-air state from dry-bulb + RH/WB/DP, live psychrometric chart, ISHRAE city presets |
+| Chilled Water Pipe Sizer | `/chilled-water/` | AHU tonnage → pipe size, from live Darcy–Weisbach hydraulics |
+| Unit Converter | `/converter/` | Length, area, air flow, velocity, water flow, temperature, pressure, cooling power — every field live at once |
 
 ---
 
@@ -179,6 +179,7 @@ handbook edition you're citing.
 
 ```
 index.html            Landing page
+404.html                Shown for unknown paths; maps old /y/ /duct/ … URLs to the renamed folders
 manifest.webmanifest   PWA manifest (icons, shortcuts)
 sw.js                  Cache-first service worker
 assets/
@@ -186,9 +187,18 @@ assets/
   app.js                Shared utilities: persistence, share-links, toasts, unit constants, icons
 icons/                  SVG + PNG icon set (192/512/maskable/apple-touch/favicons)
 screenshots/            README screenshots
-y/     duct/    psy/    chw/     conv/
+y-piece/     duct-sizer/     psychrometrics/     chilled-water/     converter/
   index.html            Each tool is self-contained: shared theme.css/app.js + its own inline logic
 ```
+
+Tool folders are named for readable URLs, but a tool's identity is the `data-tool`
+attribute on its nav link — never the folder name. Renaming a folder is therefore a
+path-only change that can't break the "last used" badge or persistence. (The
+`inputs:*` localStorage keys are also path-independent, so saved cases survive a
+rename.)
+
+`404.html` and the PWA paths assume the suite is served from `/hvac/`; update the
+`/hvac/` prefix in that file if the repo name or hosting path changes.
 
 No bundler, no package.json, no node_modules. Open any `index.html` directly or serve
 the folder with anything static (`python -m http.server`, GitHub Pages, Netlify, etc.).

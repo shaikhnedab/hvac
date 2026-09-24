@@ -71,9 +71,10 @@
       if (resolved === here || (resolved.endsWith('/') && here.endsWith(resolved))) {
         a.classList.add('active');
         a.setAttribute('aria-current', 'page');
-        // remember this as the most recently used tool, keyed by its folder (y, duct, psy, chw, conv)
-        const seg = resolved.split('/').filter(Boolean).pop();
-        if (seg) store.recordVisit(seg, a.textContent.trim(), resolved);
+        // tool identity comes from data-tool, never from the folder name, so
+        // folders can be renamed for clearer URLs without breaking this
+        const toolId = a.getAttribute('data-tool') || resolved.split('/').filter(Boolean).pop();
+        if (toolId) store.recordVisit(toolId, a.textContent.trim(), resolved);
       }
     });
 
@@ -181,11 +182,11 @@
 
   /* ---- lightweight inline SVG icon set ----------------------------------- */
   const ICONS = {
-    y: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 21V13M12 13L6 5M12 13l6-8"/></svg>',
-    duct: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="8" width="12" height="8" rx="1"/><path d="M15 10h4a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-4"/></svg>',
-    psy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3c3 4 5 6.8 5 9.5a5 5 0 1 1-10 0C7 9.8 9 7 12 3Z"/></svg>',
-    chw: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h5l2-4 3 8 2-4h4"/></svg>',
-    conv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',
+    'y-piece': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 21V13M12 13L6 5M12 13l6-8"/></svg>',
+    'duct-sizer': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="8" width="12" height="8" rx="1"/><path d="M15 10h4a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-4"/></svg>',
+    psychrometrics: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3c3 4 5 6.8 5 9.5a5 5 0 1 1-10 0C7 9.8 9 7 12 3Z"/></svg>',
+    'chilled-water': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h5l2-4 3 8 2-4h4"/></svg>',
+    converter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',
     copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a1.5 1.5 0 0 1 1.5-1.5H15"/></svg>',
     reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
     share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.3"/><circle cx="6" cy="12" r="2.3"/><circle cx="18" cy="19" r="2.3"/><path d="M8.1 10.8 15.9 6.2M8.1 13.2l7.8 4.6"/></svg>',
