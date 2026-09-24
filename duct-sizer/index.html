@@ -81,8 +81,8 @@
         <fieldset>
           <legend>Sizing criteria method</legend>
           <div class="segmented" id="methodToggle" style="width:100%;">
-            <button type="button" data-method="ef" class="active" style="flex:1;">Equal friction</button>
-            <button type="button" data-method="cv" style="flex:1;">Constant velocity</button>
+          <button type="button" data-method="ef" style="flex:1;">Equal friction</button>
+          <button type="button" data-method="cv" class="active" style="flex:1;">Constant velocity</button>
           </div>
         </fieldset>
 
@@ -350,8 +350,8 @@
 
   /* ================= persistence ================= */
   const DEFAULTS = {
-    unit: 'ip', method: 'ef',
-    dQ: 2000, dF: 0.10, dV: 1350, lock: 'h', dLock: 12,
+    unit: 'ip', method: 'cv',
+    dQ: 2000, dF: 0.10, dV: 1200, lock: 'h', dLock: 12,
     ovQ: 500, ovA: 20, ovB: 10,
     plQ: 4000, plV: 500, plLock: 'h', plLockVal: 24,
   };

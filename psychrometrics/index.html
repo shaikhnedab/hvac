@@ -50,8 +50,8 @@
       <p>Full state from dry-bulb plus any one of relative humidity, wet-bulb or dew-point — with a live chart and ISHRAE city presets.</p>
     </div>
     <div class="segmented" id="unitToggle" role="group" aria-label="Unit system">
-      <button type="button" data-unit="si" class="active">SI · °C / kPa</button>
-      <button type="button" data-unit="ip">IP · °F / psia</button>
+      <button type="button" data-unit="si">SI · °C / kPa</button>
+      <button type="button" data-unit="ip" class="active">IP · °F / psia</button>
     </div>
   </div>
 
@@ -69,11 +69,11 @@
 
       <div class="grid-2">
         <div class="field">
-          <label for="pDB">Dry-bulb temperature <span class="hint" id="u_pDB">°C</span></label>
+          <label for="pDB">Dry-bulb temperature <span class="hint" id="u_pDB">°F</span></label>
           <input type="number" id="pDB" inputmode="decimal" step="any">
         </div>
         <div class="field">
-          <label for="pAlt">Altitude <span class="hint" id="u_pAlt">m</span></label>
+          <label for="pAlt">Altitude <span class="hint" id="u_pAlt">ft</span></label>
           <input type="number" id="pAlt" inputmode="decimal" step="any">
         </div>
       </div>
@@ -212,7 +212,7 @@
   function round3(v) { return Math.round(v * 1000) / 1000; }
 
   /* ---- persistence ---- */
-  const DEFAULTS = { unit: 'si', mode: 'rh', pDB: 24, pAlt: 0, pSecond: 50, pCity: '' };
+  const DEFAULTS = { unit: 'ip', mode: 'rh', pDB: 77, pAlt: 0, pSecond: 55, pCity: '' };
   function currentState() {
     return { unit, mode, pDB: $('pDB').value, pAlt: $('pAlt').value, pSecond: $('pSecond').value, pCity: citySel.value };
   }
@@ -387,7 +387,7 @@
   document.querySelectorAll('#unitToggle button').forEach((b) => b.addEventListener('click', () => setUnit(b.dataset.unit)));
   document.querySelectorAll('#modeToggle button').forEach((b) => b.addEventListener('click', () => {
     mode = b.dataset.mode; paintMode();
-    if (mode === 'rh') $('pSecond').value = 50;
+    if (mode === 'rh') $('pSecond').value = 55;
     else $('pSecond').value = round3(fromTempC(toTempC(parseFloat($('pDB').value)) - 5));
     persist(); recompute();
   }));
