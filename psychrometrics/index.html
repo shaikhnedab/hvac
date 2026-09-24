@@ -447,7 +447,7 @@
     probeEls.h.setAttribute('x1', ctx.ML); probeEls.h.setAttribute('x2', gx);
     probeEls.dot.setAttribute('cx', gx); probeEls.dot.setAttribute('cy', gy);
 
-    const label = `${fmtNum(fromTempC(r.tC), 1)} ${tempLabel()}  ·  ${fmtNum(unit === 'ip' ? r.w * 7 : r.w, 1)} ${wLabel()}`;
+    const label = `${fmtNum(fromTempC(r.tC), 1)} ${tempLabel()}  ·  ${fmtNum(unit === 'ip' ? r.w * 7 : r.w, 1)} ${wLabel()}  ·  ${fmtNum(r.RH, 0)}% RH`;
     probeEls.txt.textContent = label;
     const tw = probeEls.txt.getComputedTextLength();
     const bw = tw + 14, bh = 18;
