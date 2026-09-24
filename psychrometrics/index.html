@@ -23,6 +23,26 @@
   .chart-rh-label { fill: var(--cyan); font-family: var(--font-mono); font-size: 8px; opacity: 0.7; }
   .chart-point { fill: var(--copper); stroke: #fff; stroke-width: 1.2; }
   .chart-crosshair { stroke: var(--copper); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.6; }
+
+  .chart-hit { fill: transparent; cursor: crosshair; touch-action: none; }
+  .probe-layer { pointer-events: none; opacity: 0; transition: opacity 0.12s ease; }
+  .probe-layer.is-on { opacity: 1; }
+  .chart-probe-line { stroke: var(--cyan); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.8; }
+  .chart-probe-dot { fill: var(--cyan); stroke: #fff; stroke-width: 1.2; }
+  .probe-float-bg { fill: var(--panel); stroke: var(--cyan); stroke-width: 1; }
+  .probe-float-text { fill: var(--paper); font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+
+  .probe-strip { margin-bottom: 1rem; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel-2); }
+  .probe-strip[hidden] { display: none; }
+  .probe-strip.clamped { border-color: var(--amber); background: var(--amber-wash); }
+  .probe-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-bottom: 0.55rem; }
+  .probe-head .p-title { font-size: 0.78rem; font-weight: 700; color: var(--cyan); }
+  .probe-head .p-note { font-size: 0.72rem; color: var(--muted-2); }
+  .probe-strip.clamped .p-note { color: var(--amber); font-weight: 600; }
+  .probe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0.5rem 0.7rem; }
+  .probe-cell .p-l { display: block; font-size: 0.68rem; color: var(--muted-2); margin-bottom: 0.1rem; }
+  .probe-cell .p-v { display: block; font-family: var(--font-mono); font-size: 0.84rem; color: var(--paper); white-space: nowrap; }
+  .probe-strip.clamped .probe-cell .p-v { color: var(--amber); }
   .preset-select { width: 100%; }
   .group-title { font-size: 0.78rem; color: var(--copper); font-weight: 600; margin: 1.1rem 0 0.5rem; text-transform: none; }
   .group-title:first-child { margin-top: 0; }
@@ -101,10 +121,18 @@
     </div>
 
     <div class="readout-panel">
-      <div class="panel-title"><div><h2>Moist air state</h2><div class="sub">Chart shows the saturation line at your altitude and current point</div></div></div>
+      <div class="panel-title"><div><h2>Moist air state</h2><div class="sub">Saturation curve and RH lines are drawn at your altitude. Drag anywhere on the plot to probe values.</div></div></div>
 
       <div class="chart-wrap">
-        <svg viewBox="0 0 640 380" id="psyChart" role="img" aria-label="Psychrometric chart"></svg>
+        <svg viewBox="0 0 640 380" id="psyChart" role="img" aria-label="Interactive psychrometric chart. Drag across the plot to read dry-bulb, humidity ratio, relative humidity, wet-bulb, dew-point, pressures, enthalpy and specific volume."></svg>
+      </div>
+
+      <div class="probe-strip" id="probeStrip" hidden>
+        <div class="probe-head">
+          <span class="p-title">Chart probe</span>
+          <span class="p-note" id="probeNote">values at the crosshair</span>
+        </div>
+        <div class="probe-grid" id="probeGrid"></div>
       </div>
 
       <div class="group-title">Psychrometric state</div>
@@ -303,6 +331,7 @@
     if (!r) {
       ['rRH','rWB','rDP','rPbar','rPws','rPv','rW','rH','rV'].forEach((id) => ($(id).innerHTML = '—'));
       drawChart(null);
+      renderProbe(null);
       return;
     }
     $('rRH').innerHTML = `${fmtNum(r.RHv, 1)} <span class="unit">%</span>`;
@@ -315,11 +344,144 @@
     $('rH').innerHTML = `${fmtNum(r.h, 2)} <span class="unit">${hLabel()}</span>`;
     $('rV').innerHTML = `${fmtNum(fromSpecVol(r.v), unit==='ip'?3:4)} <span class="unit">${vLabel()}</span>`;
     drawChart(r);
+    renderProbe(null);
   }
 
   /* ---- psychrometric chart (canonical °C / g·kg⁻¹, fixed -10 to 50°C) ---- */
   const NS = 'http://www.w3.org/2000/svg';
   function svgEl(tag, attrs) { const el = document.createElementNS(NS, tag); Object.keys(attrs).forEach((k) => el.setAttribute(k, attrs[k])); return el; }
+
+  let chartCtx = null;
+  let probeEls = null;
+  let probePending = null;
+  let probeTimer = 0;
+
+  const PROBE_FIELDS = [
+    { id: 'db', label: 'Dry-bulb', kind: 'temp' },
+    { id: 'rh', label: 'Relative humidity', kind: 'pct' },
+    { id: 'wb', label: 'Wet-bulb', kind: 'temp' },
+    { id: 'dp', label: 'Dew-point', kind: 'temp' },
+    { id: 'w', label: 'Humidity ratio', kind: 'w' },
+    { id: 'pws', label: 'Sat. pressure', kind: 'pres' },
+    { id: 'pv', label: 'Vapor pressure', kind: 'pres' },
+    { id: 'h', label: 'Enthalpy', kind: 'h' },
+    { id: 'v', label: 'Specific volume', kind: 'vol' },
+  ];
+
+  function buildProbeGrid() {
+    const host = $('probeGrid');
+    host.innerHTML = '';
+    PROBE_FIELDS.forEach((f) => {
+      const cell = document.createElement('div');
+      cell.className = 'probe-cell';
+      cell.innerHTML = `<span class="p-l">${f.label}</span><span class="p-v" id="probe-${f.id}">—</span>`;
+      host.appendChild(cell);
+    });
+  }
+
+  function renderProbe(r) {
+    const strip = $('probeStrip');
+    if (!r) { strip.hidden = true; return; }
+    strip.hidden = false;
+    strip.classList.toggle('clamped', r.clamped);
+    $('probeNote').textContent = r.clamped
+      ? 'clamped to the saturation line — no air exists above this curve'
+      : 'values at the crosshair';
+
+    const t = (c) => `${fmtNum(fromTempC(c), 1)} ${tempLabel()}`;
+    const vals = {
+      db: t(r.tC),
+      rh: `${fmtNum(r.RH, 1)} %`,
+      wb: t(r.twb),
+      dp: r.tdp === null ? '—' : t(r.tdp),
+      w: `${fmtNum(unit === 'ip' ? r.w * 7 : r.w, 2)} ${wLabel()}`,
+      pws: `${fmtNum(fromPresMbar(r.pws), unit === 'ip' ? 4 : 3)} ${presLabel()}`,
+      pv: `${fmtNum(fromPresMbar(r.pv), unit === 'ip' ? 4 : 3)} ${presLabel()}`,
+      h: `${fmtNum(r.h, 2)} ${hLabel()}`,
+      v: `${fmtNum(fromSpecVol(r.v), unit === 'ip' ? 3 : 4)} ${vLabel()}`,
+    };
+    PROBE_FIELDS.forEach((f) => { $('probe-' + f.id).textContent = vals[f.id]; });
+  }
+
+  function computeProbe(tC, wRaw) {
+    const ctx = chartCtx;
+    if (!ctx) return null;
+    const pwsVal = pws(tC);
+    const satW = humidityRatio(pwsVal, ctx.p) * 1000;
+    const clamped = wRaw > satW + 1e-9;
+    const w = Math.max(0, Math.min(wRaw, satW));
+    const W = w / 1000;
+    const pv = (W * ctx.p) / (0.621945 + W);
+    const twb = wetBulbFromPv(tC, pv, ctx.p);
+    const tdp = pv > 1e-12 ? dewPointFromPv(pv) : null;
+    return {
+      tC, w, W, pv, pws: pwsVal,
+      RH: (pv / pwsVal) * 100,
+      twb, tdp,
+      h: enthalpyNative(tC, W, unit),
+      v: specificVolumeSI(tC, W, ctx.p),
+      clamped,
+    };
+  }
+
+  function showProbe(clientX, clientY) {
+    const ctx = chartCtx;
+    if (!ctx || !probeEls) return;
+    const rect = ctx.svg.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const px = ((clientX - rect.left) / rect.width) * ctx.W;
+    const py = ((clientY - rect.top) / rect.height) * ctx.H;
+
+    const tC = Math.max(ctx.tMin, Math.min(ctx.tMax, ctx.tMin + ((px - ctx.ML) / ctx.plotW) * (ctx.tMax - ctx.tMin)));
+    const wRaw = Math.max(0, ((ctx.MT + ctx.plotH - py) / ctx.plotH) * ctx.yMax);
+    const r = computeProbe(tC, wRaw);
+    if (!r) return;
+
+    const gx = ctx.xScale(r.tC);
+    const gy = ctx.yScale(r.w);
+
+    probeEls.layer.classList.add('is-on');
+    probeEls.v.setAttribute('x1', gx); probeEls.v.setAttribute('x2', gx);
+    probeEls.v.setAttribute('y1', ctx.MT); probeEls.v.setAttribute('y2', ctx.MT + ctx.plotH);
+    probeEls.h.setAttribute('y1', gy); probeEls.h.setAttribute('y2', gy);
+    probeEls.h.setAttribute('x1', ctx.ML); probeEls.h.setAttribute('x2', gx);
+    probeEls.dot.setAttribute('cx', gx); probeEls.dot.setAttribute('cy', gy);
+
+    const label = `${fmtNum(fromTempC(r.tC), 1)} ${tempLabel()}  ·  ${fmtNum(unit === 'ip' ? r.w * 7 : r.w, 1)} ${wLabel()}`;
+    probeEls.txt.textContent = label;
+    const tw = probeEls.txt.getComputedTextLength();
+    const bw = tw + 14, bh = 18;
+    let bx = gx + 10;
+    if (bx + bw > ctx.W - 4) bx = gx - 10 - bw;
+    bx = Math.max(4, Math.min(bx, ctx.W - bw - 4));
+    let by = gy - bh - 8;
+    if (by < ctx.MT) by = gy + 10;
+    by = Math.max(ctx.MT, Math.min(by, ctx.MT + ctx.plotH - bh));
+    probeEls.bg.setAttribute('x', bx); probeEls.bg.setAttribute('y', by);
+    probeEls.bg.setAttribute('width', bw); probeEls.bg.setAttribute('height', bh);
+    probeEls.txt.setAttribute('x', bx + 7); probeEls.txt.setAttribute('y', by + 13);
+
+    renderProbe(r);
+  }
+
+  // Coalesce pointermove to one update per frame. A short timer is used rather
+  // than requestAnimationFrame because rAF never fires when the page is not
+  // painting, which would silently kill the probe.
+  function queueProbe(clientX, clientY) {
+    probePending = { x: clientX, y: clientY };
+    if (probeTimer) return;
+    probeTimer = setTimeout(() => {
+      probeTimer = 0;
+      const p = probePending;
+      probePending = null;
+      if (p) showProbe(p.x, p.y);
+    }, 16);
+  }
+
+  function hideProbe() {
+    if (probeEls) probeEls.layer.classList.remove('is-on');
+    renderProbe(null);
+  }
 
   function drawChart(state) {
     const svg = $('psyChart');
@@ -381,6 +543,32 @@
       svg.appendChild(svgEl('line', { x1: ML, y1: py, x2: px, y2: py, class: 'chart-crosshair' }));
       svg.appendChild(svgEl('circle', { cx: px, cy: py, r: 5, class: 'chart-point' }));
     }
+
+    // probe layer + hit target (hit rect is appended last so it owns the
+    // whole plot area for pointer events, including over empty regions)
+    chartCtx = { W, H, ML, MT, plotW, plotH, tMin, tMax, yMax, p, svg, xScale, yScale };
+    const layer = svgEl('g', { class: 'probe-layer' });
+    const v = svgEl('line', { class: 'chart-probe-line' });
+    const h = svgEl('line', { class: 'chart-probe-line' });
+    const dot = svgEl('circle', { class: 'chart-probe-dot', r: 4 });
+    const bg = svgEl('rect', { class: 'probe-float-bg', rx: 4 });
+    const txt = svgEl('text', { class: 'probe-float-text' });
+    layer.append(v, h, dot, bg, txt);
+    svg.appendChild(layer);
+
+    const hit = svgEl('rect', { x: ML, y: MT, width: plotW, height: plotH, class: 'chart-hit' });
+    svg.appendChild(hit);
+
+    probeEls = { layer, v, h, dot, bg, txt };
+
+    hit.addEventListener('pointerdown', (e) => {
+      try { hit.setPointerCapture(e.pointerId); } catch (err) { /* older browsers */ }
+      e.preventDefault();
+      queueProbe(e.clientX, e.clientY);
+    });
+    hit.addEventListener('pointermove', (e) => queueProbe(e.clientX, e.clientY));
+    hit.addEventListener('pointerleave', hideProbe);
+    hit.addEventListener('pointercancel', hideProbe);
   }
 
   /* ---- wiring ---- */
@@ -404,6 +592,7 @@
   });
 
   HvacSuite.initNav();
+  buildProbeGrid();
   restore();
   paintUnitLabels();
   paintMode();
