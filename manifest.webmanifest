@@ -1,16 +1,27 @@
 {
   "name": "HVAC Design Suite",
   "short_name": "HVAC Suite",
-  "description": "HVAC engineering calculators: Y-piece duct splits, duct & plenum sizing, psychrometrics, chilled water pipe sizing, and unit conversions.",
+  "description": "Offline-first mechanical HVAC engineering calculators: duct sizing, psychrometrics, chilled-water pipe sizing, Y-piece splits, and unit conversion.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#121824",
-  "theme_color": "#121824",
+  "orientation": "portrait-primary",
+  "background_color": "#0a1120",
+  "theme_color": "#0a1120",
+  "lang": "en",
+  "categories": ["engineering", "utilities", "productivity"],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/favicon-16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "icons/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Y-Piece Duct Splitter", "url": "./y/index.html" },
+    { "name": "Duct & Plenum Sizer", "url": "./duct/index.html" },
+    { "name": "Psychrometric Calculator", "url": "./psy/index.html" },
+    { "name": "Chilled Water Pipe Sizer", "url": "./chw/index.html" },
+    { "name": "Unit Converter", "url": "./conv/index.html" }
   ]
 }

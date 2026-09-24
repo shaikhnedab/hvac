@@ -1,295 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chilled Water Pipe Sizer</title>
-    <meta name="theme-color" content="#121824">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
-    <link rel="manifest" href="../manifest.webmanifest">
-    <link rel="apple-touch-icon" href="../icons/icon-192.png">
-    <style>
-        :root {
-            --bg-color: #121824;
-            --panel-bg: #1e2538;
-            --border-color: #2e374e;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-color: #3b82f6;
-            --warning-color: #f59e0b;
-            --success-color: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        html { overflow-y: scroll; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
-        .container { width: 100%; max-width: 560px; background: var(--panel-bg); padding: 2rem; margin: 0 auto 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
-        
-        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; display: inline-block; font-size: 0.9rem; }
-        .back-link:hover { color: var(--text-main); }
-
-        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
-        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
-        .tool-nav a.active { color: #fff; background: var(--accent-color); }
-        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
-        .tool-nav .nav-brand:hover { background: none; }
-        
-        h2 { margin-bottom: 1.5rem; text-align: center; }
-        
-        .input-group { margin-bottom: 1.2rem; }
-        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
-        input[type="number"], select { 
-            width: 100%; 
-            padding: 12px; 
-            background: var(--bg-color); 
-            border: 1px solid var(--border-color); 
-            color: white; 
-            border-radius: 6px; 
-            font-size: 1rem; 
-            appearance: none;
-        }
-        input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent-color); }
-        
-        .select-wrapper { position: relative; }
-        .select-wrapper::after {
-            content: "▼";
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .result-box { padding: 1.5rem; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
-        .result-item { text-align: center; padding: 1rem; border-radius: 6px; background: var(--panel-bg); }
-        .result-item h1 { margin: 0.5rem 0; font-size: 1.6rem; }
-        .result-item.primary h1 { color: var(--accent-color); }
-        .result-item.secondary h1 { color: var(--text-main); }
-        .result-item.borderline { border: 1px dashed var(--warning-color); }
-        .result-item.borderline h1 { color: var(--warning-color); font-size: 1.5rem; }
-        .result-item p { font-size: 0.85rem; color: var(--text-muted); }
-
-        .btn-row { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
-        .reset-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
-        .reset-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
-
-        .copy-btn { width: 100%; margin-top: 0.5rem; padding: 0.6rem; background: var(--bg-color); border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
-        .copy-btn:hover { background: var(--accent-color); color: #fff; }
-
-        .table-toggle { width: 100%; margin-top: 0.5rem; padding: 0.6rem; background: none; border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
-        .table-toggle:hover { color: var(--text-main); border-color: var(--text-muted); }
-
-        .sizing-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
-        .sizing-table th, .sizing-table td { text-align: center; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border-color); }
-        .sizing-table th { color: var(--text-muted); font-weight: 600; background: rgba(0,0,0,0.15); }
-        .sizing-table tr.row-safe { background: rgba(16, 185, 129, 0.12); color: var(--success-color); font-weight: 600; }
-        .sizing-table tr.row-borderline { background: rgba(245, 158, 11, 0.12); color: var(--warning-color); font-weight: 600; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chilled Water Pipe Sizer · HVAC Suite</title>
+<meta name="description" content="AHU tonnage to chilled-water pipe size, computed live from Darcy-Weisbach hydraulics rather than a fixed lookup table.">
+<meta name="theme-color" content="#0a1120">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+  .borderline-row td { color: var(--amber) !important; }
+  .borderline-row td:first-child::before { content: "△ "; }
+  details.adv { margin-top: 0.9rem; }
+  details.adv summary { cursor: pointer; font-size: 0.8rem; color: var(--muted); padding: 0.3rem 0; }
+  details.adv summary:hover { color: var(--copper); }
+  details.adv .field { margin-top: 0.8rem; }
+</style>
 </head>
 <body>
 
-<nav class="tool-nav">
-    <a href="../index.html" class="nav-brand">HVAC Suite</a>
-    <a href="../y/index.html">Y-Piece</a>
-    <a href="../duct/index.html">Duct Sizer</a>
-    <a href="../psy/index.html">Psychrometrics</a>
-    <a href="../chw/index.html" class="active">Chilled Water</a>
-    <a href="../conv/index.html">Converter</a>
+<nav class="tool-nav" aria-label="Suite navigation">
+  <a href="../index.html" class="nav-brand"><span class="mark" aria-hidden="true"></span>HVAC Suite</a>
+  <a href="../y/index.html" class="nav-link">Y-Piece</a>
+  <a href="../duct/index.html" class="nav-link">Duct Sizer</a>
+  <a href="../psy/index.html" class="nav-link">Psychrometrics</a>
+  <a href="../chw/index.html" class="nav-link">Chilled Water</a>
+  <a href="../conv/index.html" class="nav-link">Converter</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-status"><span class="dot"></span><span class="label">Ready offline</span></span>
 </nav>
 
-<div class="container">
-    
-    <h2>Chilled Water Pipe Sizer</h2>
-    
-    <div class="input-group">
-        <label>AHU Tonnage (TR)</label>
-        <input type="number" id="tonnage" placeholder="Enter TR (e.g., 50)" oninput="calculatePipe()">
-    </div>
+<div class="shell">
 
-    <div class="input-group">
-        <label>Flow Standard (GPM/TR)</label>
-        <div class="select-wrapper">
-            <select id="gpmPerTr" onchange="calculatePipe()">
-                <option value="2.4" selected>2.4 GPM/TR</option>
-                <option value="2.6">2.6 GPM/TR</option>
-            </select>
+  <div class="page-head">
+    <div class="titles">
+      <span class="kicker">AHU / FAHU connection piping</span>
+      <h1>Chilled Water Pipe Sizer</h1>
+      <p>Pipe selection from AHU tonnage, sized live from Darcy–Weisbach hydraulics — not a fixed capacity chart, so any flow or target works.</p>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="panel">
+      <div class="panel-title"><div><h2>Load &amp; criteria</h2></div></div>
+
+      <div class="field">
+        <label for="cTR">AHU tonnage <span class="hint">TR</span></label>
+        <input type="number" id="cTR" inputmode="decimal" step="any" min="0">
+      </div>
+
+      <fieldset>
+        <legend>Flow standard</legend>
+        <div class="segmented" id="gpmToggle" style="width:100%;">
+          <button type="button" data-gpm="2.4" class="active" style="flex:1;">2.4 GPM/TR</button>
+          <button type="button" data-gpm="2.6" style="flex:1;">2.6 GPM/TR</button>
         </div>
-    </div>
+      </fieldset>
 
-    <div class="input-group">
-        <label>Selection Basis (Pipes &le; 4")</label>
-        <div class="select-wrapper">
-            <select id="friction" onchange="calculatePipe()">
-                <option value="4" selected>Friction Loss: 4 ft / 100 ft</option>
-                <option value="5">Friction Loss: 5 ft / 100 ft</option>
-            </select>
+      <fieldset>
+        <legend>Selection basis — pipes ≤ 4 in</legend>
+        <div class="segmented" id="fricToggle" style="width:100%;">
+          <button type="button" data-f="4" class="active" style="flex:1;">4 ft / 100 ft</button>
+          <button type="button" data-f="5" style="flex:1;">5 ft / 100 ft</button>
         </div>
+      </fieldset>
+
+      <details class="adv">
+        <summary>Advanced hydraulic assumptions</summary>
+        <div class="field">
+          <label for="cVel">Max velocity — pipes ≥ 5 in <span class="hint">ft/s</span></label>
+          <input type="number" id="cVel" inputmode="decimal" step="any" min="0">
+          <div class="field-note">Large mains are sized on velocity, not friction, to control noise and erosion. 8 ft/s is a common chilled-water ceiling.</div>
+        </div>
+      </details>
+
+      <div id="warnZero" class="alert alert-danger" hidden></div>
+
+      <div class="btn-row">
+        <button class="btn" id="btnReset" type="button"><span class="ico" data-icon="reset"></span>Reset</button>
+        <button class="btn" id="btnShare" type="button"><span class="ico" data-icon="share"></span>Share</button>
+      </div>
     </div>
 
-    <div class="btn-row">
-        <button class="reset-btn" onclick="resetForm()">↺ Reset to Defaults</button>
+    <div class="readout-panel">
+      <div class="panel-title"><div><h2>Recommended pipe</h2><div class="sub">Smallest standard size that meets your selection basis</div></div></div>
+
+      <div class="readout-grid cols-2">
+        <div class="readout"><div class="r-label">Total flow</div><div class="r-value" id="rGPM">—</div></div>
+        <div class="readout featured"><div class="r-label" id="rSizeLabel">Recommended size</div><div class="r-value" id="rSize">—</div><div class="r-alt" id="rSizeNote"></div></div>
+        <div class="readout"><div class="r-label">Velocity at this size</div><div class="r-value" id="rVel">—</div></div>
+        <div class="readout"><div class="r-label">Friction at this size</div><div class="r-value" id="rFric">—</div></div>
+      </div>
+
+      <div id="warnBorderline" class="alert alert-amber" hidden></div>
+      <div id="warnErosion" class="alert alert-amber" hidden></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnCopy" type="button"><span class="ico" data-icon="copy"></span>Copy results</button>
+      </div>
     </div>
-    
-    <div class="result-box" id="resultContainer">
-        <div style="text-align: center; color: var(--text-muted);">Enter tonnage to calculate</div>
+  </div>
+
+  <section style="margin-top:2rem;">
+    <h2 class="section-title">Full pipe schedule at this flow</h2>
+    <p class="section-sub">Sch. 40 steel IDs. ≤ 4 in rated by friction target; ≥ 5 in rated by the velocity ceiling. Capacity is the maximum flow that size can carry within that target — click any row to lock the recommendation above to it.</p>
+    <div class="table-wrap">
+      <table id="pipeTable">
+        <thead><tr><th>NPS</th><th>DN</th><th>ID</th><th>Capacity</th><th>Velocity @ flow</th><th>Friction @ flow</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
+  </section>
+
+  <footer class="suite-footer">
+    <span>Darcy–Weisbach + Swamee–Jain, commercial steel ε = 0.00015 ft, water ≈45°F (ν ≈ 1.55×10⁻⁵ ft²/s) — verify against your specified pipe material and design temperature</span>
+    <span><a href="../index.html">← Back to suite</a></span>
+  </footer>
 </div>
 
+<script src="../assets/app.js"></script>
 <script>
-    const data4ft = [
-        { baseTons: 0.7, inch: 0.5, mm: 12 },
-        { baseTons: 1.6, inch: 0.75, mm: 20 },
-        { baseTons: 3.1, inch: 1, mm: 25 },
-        { baseTons: 6.4, inch: 1.25, mm: 32 },
-        { baseTons: 9.7, inch: 1.5, mm: 40 },
-        { baseTons: 19, inch: 2, mm: 50 },
-        { baseTons: 30, inch: 2.5, mm: 65 },
-        { baseTons: 54, inch: 3, mm: 80 },
-        { baseTons: 112, inch: 4, mm: 100 }
-    ];
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const EPS_FT = 0.00015;
+  const NU = 1.55e-5;
+  const G = 32.174;
 
-    const data5ft = [
-        { baseTons: 0.8, inch: 0.5, mm: 12 },
-        { baseTons: 1.8, inch: 0.75, mm: 20 },
-        { baseTons: 3.5, inch: 1, mm: 25 },
-        { baseTons: 7, inch: 1.25, mm: 32 },
-        { baseTons: 11, inch: 1.5, mm: 40 },
-        { baseTons: 21, inch: 2, mm: 50 },
-        { baseTons: 34, inch: 2.5, mm: 65 },
-        { baseTons: 61, inch: 3, mm: 80 },
-        { baseTons: 125, inch: 4, mm: 100 }
-    ];
+  const SIZES = [
+    { nps: '3/4"', dn: 'DN20', id: 0.824 },
+    { nps: '1"', dn: 'DN25', id: 1.049 },
+    { nps: '1-1/4"', dn: 'DN32', id: 1.380 },
+    { nps: '1-1/2"', dn: 'DN40', id: 1.610 },
+    { nps: '2"', dn: 'DN50', id: 2.067 },
+    { nps: '2-1/2"', dn: 'DN65', id: 2.469 },
+    { nps: '3"', dn: 'DN80', id: 3.068 },
+    { nps: '4"', dn: 'DN100', id: 4.026 },
+    { nps: '5"', dn: 'DN125', id: 5.047 },
+    { nps: '6"', dn: 'DN150', id: 6.065 },
+    { nps: '8"', dn: 'DN200', id: 7.981 },
+    { nps: '10"', dn: 'DN250', id: 10.020 },
+    { nps: '12"', dn: 'DN300', id: 11.938 },
+  ];
+  const LARGE_CUTOFF = 4.5; // inches — at/below uses friction basis, above uses velocity basis
 
-    const dataVel = [
-        { baseTons: 208, inch: 5, mm: 125 },
-        { baseTons: 300, inch: 6, mm: 150 },
-        { baseTons: 520, inch: 8, mm: 200 },
-        { baseTons: 820, inch: 10, mm: 250 },
-        { baseTons: 1174, inch: 12, mm: 300 }
-    ];
+  function velocityAt(gpm, dIn) { return (0.4085 * gpm) / (dIn * dIn); }
+  function swameeJain(relRough, Re) {
+    const term = relRough / 3.7 + 5.74 / Math.pow(Re, 0.9);
+    return 0.25 / Math.pow(Math.log10(term), 2);
+  }
+  function frictionAt(gpm, dIn) {
+    const dFt = dIn / 12;
+    const V = velocityAt(gpm, dIn);
+    if (V <= 0) return 0;
+    const Re = (V * dFt) / NU;
+    const f = swameeJain(EPS_FT / dFt, Re);
+    return f * (100 / dFt) * (V * V) / (2 * G);
+  }
+  function bisect(f, lo, hi, iters) { for (let i = 0; i < iters; i++) { const mid = (lo + hi) / 2; if (f(mid) < 0) lo = mid; else hi = mid; } return (lo + hi) / 2; }
+  function capacityByFriction(dIn, targetF) { return bisect((gpm) => frictionAt(gpm, dIn) - targetF, 0.001, 200000, 80); }
+  function capacityByVelocity(dIn, targetV) { return (targetV * dIn * dIn) / 0.4085; }
+  function capacityOf(size, fricTarget, velTarget) {
+    return size.id <= LARGE_CUTOFF ? capacityByFriction(size.id, fricTarget) : capacityByVelocity(size.id, velTarget);
+  }
 
-    function calculatePipe() {
-        const tr = parseFloat(document.getElementById('tonnage').value);
-        const frictionMode = document.getElementById('friction').value;
-        const flowStandard = parseFloat(document.getElementById('gpmPerTr').value);
-        const resultContainer = document.getElementById('resultContainer');
-        
-        if (isNaN(tr) || tr <= 0) { 
-            resultContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted);">Enter valid tonnage</div>'; 
-            return; 
-        }
+  const DEFAULTS = { TR: 100, gpmPerTR: '2.4', fricTarget: '4', maxVel: 8 };
+  let gpmPerTR = 2.4, fricTarget = 4;
+  let stdOverrideIdx = null;
 
-        const baseData = frictionMode === '4' ? data4ft : data5ft;
-        const fullTable = [...baseData, ...dataVel];
+  function fmtNum(v, dp) { dp = dp === undefined ? 2 : dp; return isFinite(v) ? Number(v.toFixed(dp)).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }) : '—'; }
+  function fmtFric(v) {
+    if (!isFinite(v)) return '—';
+    const dp = v >= 100 ? 0 : v >= 10 ? 1 : 3;
+    return fmtNum(v, dp);
+  }
 
-        // Recalculate capacity: (Base is @ 2.4 GPM/TR)
-        const adjustedTable = fullTable.map(row => ({
-            ...row,
-            calcTons: parseFloat(((row.baseTons * 2.4) / flowStandard).toFixed(1))
-        }));
+  function currentState() {
+    return { TR: $('cTR').value, gpmPerTR: String(gpmPerTR), fricTarget: String(fricTarget), maxVel: $('cVel').value };
+  }
+  function persist() { HvacSuite.store.set('inputs:chw', currentState()); }
+  function applyState(s) {
+    $('cTR').value = s.TR;
+    gpmPerTR = parseFloat(s.gpmPerTR) || 2.4;
+    fricTarget = parseFloat(s.fricTarget) || 4;
+    $('cVel').value = s.maxVel;
+    paintToggles();
+  }
+  function restore() {
+    const fromUrl = HvacSuite.queryToState();
+    const fromStore = HvacSuite.store.get('inputs:chw', {});
+    applyState(Object.assign({}, DEFAULTS, fromStore, fromUrl));
+  }
+  function loadDefaults() { stdOverrideIdx = null; applyState(DEFAULTS); }
 
-        const safeIndex = adjustedTable.findIndex(row => tr <= row.calcTons);
-        
-        if (safeIndex === -1) {
-            resultContainer.innerHTML = `<div style="text-align: center; color: var(--warning-color);">Tonnage exceeds chart maximum.</div>`;
-            return;
-        }
+  function paintToggles() {
+    document.querySelectorAll('#gpmToggle button').forEach((b) => b.classList.toggle('active', parseFloat(b.dataset.gpm) === gpmPerTR));
+    document.querySelectorAll('#fricToggle button').forEach((b) => b.classList.toggle('active', parseFloat(b.dataset.f) === fricTarget));
+  }
 
-        const safePipe = adjustedTable[safeIndex];
-        const flowGpm = tr * flowStandard;
-        let borderlineIndex = -1;
-        if (safeIndex > 0 && tr <= (adjustedTable[safeIndex - 1].calcTons * 1.15)) {
-            borderlineIndex = safeIndex - 1;
-        }
+  function compute() {
+    const TR = parseFloat($('cTR').value);
+    const velTarget = parseFloat($('cVel').value);
+    const warnZero = $('warnZero');
+    warnZero.hidden = true;
+    if (!isFinite(TR) || TR <= 0 || !isFinite(velTarget) || velTarget <= 0) return null;
+    if (TR > 100000) { warnZero.hidden = false; warnZero.innerHTML = HvacSuite.ICONS.warn + '<span>That tonnage is outside a sensible single-pipe range — check the value.</span>'; return null; }
 
-        let htmlOutput = `
-            <div class="result-item primary">
-                <p>Safe Recommendation</p>
-                <h1>${safePipe.inch}" (${safePipe.mm} mm)</h1>
-                <p>Max Capacity: ${safePipe.calcTons} TR</p>
-            </div>
-            <div class="result-item secondary">
-                <p>Calculated Flow</p>
-                <h1>${flowGpm.toLocaleString('en-US')} GPM</h1>
-            </div>
-        `;
+    const gpm = TR * gpmPerTR;
+    const rows = SIZES.map((s) => {
+      const cap = capacityOf(s, fricTarget, velTarget);
+      const vel = velocityAt(gpm, s.id);
+      const fric = frictionAt(gpm, s.id);
+      return { ...s, cap, vel, fric };
+    });
 
-        if (borderlineIndex !== -1) {
-            const smallerPipe = adjustedTable[borderlineIndex];
-            htmlOutput += `
-                <div class="result-item borderline">
-                    <p>Borderline Option (Within 15% buffer)</p>
-                    <h1>${smallerPipe.inch}" (${smallerPipe.mm} mm)</h1>
-                    <p>Max Capacity: ${smallerPipe.calcTons} TR</p>
-                </div>
-            `;
-        }
+    let safeIdx = rows.findIndex((r) => r.cap >= gpm);
+    if (safeIdx === -1) safeIdx = rows.length - 1; // largest available, flagged separately if still short
+    let borderlineIdx = null;
+    if (safeIdx > 0) {
+      const smaller = rows[safeIdx - 1];
+      if (gpm <= smaller.cap * 1.15) borderlineIdx = safeIdx - 1;
+    }
+    const chosenIdx = stdOverrideIdx !== null ? stdOverrideIdx : safeIdx;
 
-        let tableHtml = `
-            <button class="table-toggle" onclick="toggleSizingTable(this)">Show Full Sizing Table ▾</button>
-            <table class="sizing-table">
-                <thead><tr><th>Pipe Size</th><th>Metric</th><th>Max Capacity</th></tr></thead>
-                <tbody>
-        `;
-        adjustedTable.forEach((row, i) => {
-            const cls = i === safeIndex ? 'row-safe' : (i === borderlineIndex ? 'row-borderline' : '');
-            tableHtml += `<tr class="${cls}"><td>${row.inch}"</td><td>${row.mm} mm</td><td>${row.calcTons} TR</td></tr>`;
-        });
-        tableHtml += '</tbody></table>';
+    return { TR, gpm, rows, safeIdx, borderlineIdx, chosenIdx, undersized: rows[safeIdx].cap < gpm };
+  }
 
-        htmlOutput += tableHtml;
-        htmlOutput += '<button class="copy-btn" onclick="copyResults(this)">Copy Results</button>';
-        resultContainer.innerHTML = htmlOutput;
+  function renderPipeTable(r) {
+    const tbody = document.querySelector('#pipeTable tbody');
+    tbody.innerHTML = '';
+    if (!r) return;
+    r.rows.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      if (i === r.chosenIdx) tr.classList.add('closest');
+      if (i === r.borderlineIdx) tr.classList.add('borderline-row');
+      const capTR = row.cap / gpmPerTR;
+      tr.innerHTML = `<td>${row.nps}</td><td>${row.dn}</td><td>${row.id.toFixed(3)} in</td>` +
+        `<td>${fmtNum(row.cap,1)} GPM <span class="muted">(${fmtNum(capTR,0)} TR)</span></td>` +
+        `<td>${fmtNum(row.vel,2)} ft/s</td><td>${row.id<=LARGE_CUTOFF ? fmtFric(row.fric)+' ft/100ft' : '—'}</td>`;
+      tr.title = 'Click to lock the recommendation to this size';
+      tr.addEventListener('click', () => { stdOverrideIdx = i; render(); HvacSuite.toast(`Locked recommendation to ${row.nps}`); });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function render() {
+    const r = compute();
+    const warnBorderline = $('warnBorderline'), warnErosion = $('warnErosion');
+    warnBorderline.hidden = true; warnErosion.hidden = true;
+
+    if (!r) {
+      $('rGPM').innerHTML = '—'; $('rSize').innerHTML = '—'; $('rVel').innerHTML = '—'; $('rFric').innerHTML = '—';
+      $('rSizeLabel').textContent = 'Recommended size'; $('rSizeNote').textContent = '';
+      renderPipeTable(null);
+      return;
     }
 
-    function toggleSizingTable(btn) {
-        const table = document.querySelector('.sizing-table');
-        const hidden = table.style.display === 'none';
-        table.style.display = hidden ? 'table' : 'none';
-        btn.innerText = hidden ? 'Hide Full Sizing Table ▴' : 'Show Full Sizing Table ▾';
+    const chosen = r.rows[r.chosenIdx];
+    $('rGPM').innerHTML = `${fmtNum(r.gpm, 1)} <span class="unit">GPM</span>`;
+    $('rSize').innerHTML = `${chosen.nps} <span class="unit">${chosen.dn}</span>`;
+    $('rVel').innerHTML = `${fmtNum(chosen.vel, 2)} <span class="unit">ft/s</span>`;
+    $('rFric').innerHTML = chosen.id <= LARGE_CUTOFF ? `${fmtFric(chosen.fric)} <span class="unit">ft/100ft</span>` : `<span class="unit" style="margin-left:0;">velocity-governed</span>`;
+
+    if (stdOverrideIdx !== null) {
+      $('rSizeLabel').textContent = 'Locked size (manual)';
+      $('rSizeNote').innerHTML = `Auto-recommended: ${r.rows[r.safeIdx].nps} — <a id="clearChwOverride" style="cursor:pointer;text-decoration:underline;color:var(--copper-strong);">use recommended</a>`;
+    } else {
+      $('rSizeLabel').textContent = 'Recommended size';
+      $('rSizeNote').textContent = r.undersized ? 'Exceeds the largest cataloged size at this target — consider twin pipes or relaxing the criteria.' : 'Smallest size meeting your selection basis';
+    }
+    const clearLink = document.getElementById('clearChwOverride');
+    if (clearLink) clearLink.addEventListener('click', () => { stdOverrideIdx = null; render(); });
+
+    if (r.borderlineIdx !== null && stdOverrideIdx === null) {
+      const b = r.rows[r.borderlineIdx];
+      const overPct = ((r.gpm - b.cap) / b.cap) * 100;
+      warnBorderline.hidden = false;
+      warnBorderline.innerHTML = HvacSuite.ICONS.warn + `<span>${b.nps} is a borderline alternative — only ${fmtNum(overPct,0)}% over its rated capacity at this basis. Usable if friction/noise margin allows, marked △ below.</span>`;
+    }
+    if (chosen.vel > 10) {
+      warnErosion.hidden = false;
+      warnErosion.innerHTML = HvacSuite.ICONS.warn + `<span>Velocity at the recommended size is ${fmtNum(chosen.vel,1)} ft/s — above the common 10 ft/s erosion/noise ceiling for chilled water. Consider the next size up.</span>`;
     }
 
-    function copyResults(btn) {
-        const text = document.getElementById('resultContainer').innerText.replace(/\s+/g, ' ').trim();
-        safeCopy(text, btn);
-    }
+    renderPipeTable(r);
+    persist();
+  }
 
-    function safeCopy(text, btn) {
-        const done = () => {
-            const old = btn.innerText;
-            btn.innerText = '✓ Copied';
-            setTimeout(() => { btn.innerText = old; }, 1500);
-        };
-        const fallback = () => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch (e) {}
-            document.body.removeChild(ta);
-            done();
-        };
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, fallback);
-        } else { fallback(); }
-    }
+  document.querySelectorAll('#gpmToggle button').forEach((b) => b.addEventListener('click', () => { gpmPerTR = parseFloat(b.dataset.gpm); paintToggles(); render(); }));
+  document.querySelectorAll('#fricToggle button').forEach((b) => b.addEventListener('click', () => { fricTarget = parseFloat(b.dataset.f); paintToggles(); render(); }));
+  $('cTR').addEventListener('input', render);
+  $('cVel').addEventListener('input', render);
 
-    function resetForm() {
-        document.getElementById('tonnage').value = '';
-        document.getElementById('gpmPerTr').value = '2.4';
-        document.getElementById('friction').value = '4';
-        calculatePipe();
-    }
-</script>
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('../sw.js').catch(() => {});
-        });
-    }
+  $('btnReset').addEventListener('click', () => { loadDefaults(); render(); HvacSuite.toast('Reset to defaults'); });
+  $('btnShare').addEventListener('click', () => HvacSuite.shareLink(currentState()));
+  $('btnCopy').addEventListener('click', () => {
+    const text = `Chilled Water Pipe Sizer\nAHU tonnage: ${$('cTR').value} TR @ ${gpmPerTR} GPM/TR\n` +
+      `Total flow: ${$('rGPM').textContent}\nRecommended size: ${$('rSize').textContent}\n` +
+      `Velocity: ${$('rVel').textContent}\nFriction: ${$('rFric').textContent}`;
+    HvacSuite.copyText(text, 'Pipe size copied');
+  });
+
+  HvacSuite.initNav();
+  restore();
+  render();
+})();
 </script>
 </body>
 </html>

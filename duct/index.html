@@ -1,947 +1,705 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HVAC Duct & Plenum Sizer Pro</title>
-    <meta name="theme-color" content="#121824">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
-    <link rel="manifest" href="../manifest.webmanifest">
-    <link rel="apple-touch-icon" href="../icons/icon-192.png">
-    <style>
-        :root {
-            --bg-color: #121824;
-            --panel-bg: #1e2538;
-            --border-color: #2e374e;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --success-color: #10b981;
-            --info-bg: #1a2333;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        html { overflow-y: scroll; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
-        .wrapper { width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
-        header { margin-bottom: 2rem; text-align: center; }
-        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
-        header p { color: var(--text-muted); font-size: 0.95rem; }
-        
-        .container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-        .full-width { grid-template-columns: 1fr; }
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
-
-        .card { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .card h2 { font-size: 1.2rem; margin-bottom: 1.2rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        
-        .split-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 600px) { .split-card-grid { grid-template-columns: 1fr; } }
-
-        .form-group { margin-bottom: 1.2rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
-        .input-wrapper { display: flex; position: relative; }
-        input[type="number"], select {
-            width: 100%; padding: 0.65rem 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 6px; color: var(--text-main); font-size: 1rem; outline: none; transition: border 0.2s;
-        }
-        input:focus, select:focus { border-color: var(--accent-color); }
-        .unit { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
-        input { padding-right: 5rem !important; }
-
-        .toggle-group { display: flex; gap: 0.5rem; background: var(--bg-color); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-        .toggle-btn { flex: 1; border: none; background: none; color: var(--text-muted); padding: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-        .toggle-btn.active { background: var(--accent-color); color: #fff; }
-
-        .radio-group { display: flex; gap: 1rem; margin-bottom: 1.2rem; }
-        .radio-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
-
-        .results-list { display: flex; flex-direction: column; gap: 1rem; }
-        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; }
-        .result-val { font-size: 1.1rem; font-weight: 600; color: var(--success-color); text-align: right; }
-        .sec-val { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
-        
-        /* Reference Tables */
-        .ref-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.85rem; }
-        .ref-table th, .ref-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .ref-table th { color: var(--text-muted); font-weight: 600; background-color: rgba(0,0,0,0.15); }
-        .ref-table tr:hover { background-color: rgba(255,255,255,0.02); }
-        .clickable-row { cursor: pointer; color: var(--accent-color); font-weight: 500; }
-        .clickable-row:hover { text-decoration: underline; }
-
-        .alert { font-size: 0.8rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: none; }
-
-        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1rem; display: inline-block; font-size: 0.9rem; }
-        .back-link:hover { color: var(--text-main); }
-
-        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
-        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
-        .tool-nav a.active { color: #fff; background: var(--accent-color); }
-        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
-        .tool-nav .nav-brand:hover { background: none; }
-
-        .clickable-row.active { background-color: rgba(59, 130, 246, 0.15); outline: 1px solid var(--accent-color); }
-        .clickable-row .bench-check { color: var(--accent-color); font-weight: 700; visibility: hidden; }
-        .clickable-row.active .bench-check { visibility: visible; }
-
-        .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
-        .tool-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
-        .tool-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
-        .tool-btn.primary { color: var(--accent-color); border-color: var(--accent-color); }
-        .tool-btn.primary:hover { background: var(--accent-color); color: #fff; }
-
-        .result-label-row { display: flex; justify-content: space-between; align-items: baseline; }
-
-        .std-row-active { background-color: rgba(59, 130, 246, 0.15) !important; }
-        .std-sel { color: var(--accent-color); font-weight: 700; visibility: hidden; }
-        .std-row-active .std-sel { visibility: visible; }
-
-        .oval-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        .oval-summary .result-item { display: block; text-align: center; }
-        @media (max-width: 600px) { .oval-summary { grid-template-columns: 1fr; } }
-        .oval-summary .result-val { text-align: center; font-size: 1.05rem; }
-
-        .info-box { font-size: 0.8rem; color: var(--text-muted); background-color: var(--info-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-top: 1rem; line-height: 1.6; }
-        .info-box strong { color: var(--text-main); }
-        .table-scroll { overflow-x: auto; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duct &amp; Plenum Sizer · HVAC Suite</title>
+<meta name="description" content="Equal-friction and constant-velocity round/rectangular duct sizing, standard size tables, flat-oval ducts, and plenum box sizing.">
+<meta name="theme-color" content="#0a1120">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+  .jump-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: -0.6rem 0 1.4rem; }
+  .jump-row a {
+    font-size: 0.76rem; color: var(--muted); text-decoration: none;
+    border: 1px solid var(--line); padding: 0.3rem 0.7rem; border-radius: 999px;
+  }
+  .jump-row a:hover { color: var(--copper); border-color: var(--copper); }
+  section.block { margin-bottom: 2.4rem; scroll-margin-top: 70px; }
+  .field[data-hide="true"] { display: none; }
+  .size-chip-row { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.9rem; }
+  .size-chip {
+    font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted);
+    border: 1px solid var(--line); background: var(--inset);
+    padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .size-chip:hover, .size-chip.active { border-color: var(--copper); color: var(--paper); background: var(--copper-wash); }
+  .table-compact table { min-width: 0; font-size: 0.76rem; }
+  .table-compact th, .table-compact td { padding: 0.42rem 0.55rem; }
+  .table-compact td:first-child { white-space: normal; }
+  .std-override-note { font-size: 0.74rem; color: var(--copper-strong); margin-top: 0.3rem; }
+  .std-override-note a { color: inherit; text-decoration: underline; cursor: pointer; }
+</style>
 </head>
 <body>
 
-<nav class="tool-nav">
-    <a href="../index.html" class="nav-brand">HVAC Suite</a>
-    <a href="../y/index.html">Y-Piece</a>
-    <a href="../duct/index.html" class="active">Duct Sizer</a>
-    <a href="../psy/index.html">Psychrometrics</a>
-    <a href="../chw/index.html">Chilled Water</a>
-    <a href="../conv/index.html">Converter</a>
+<nav class="tool-nav" aria-label="Suite navigation">
+  <a href="../index.html" class="nav-brand"><span class="mark" aria-hidden="true"></span>HVAC Suite</a>
+  <a href="../y/index.html" class="nav-link">Y-Piece</a>
+  <a href="../duct/index.html" class="nav-link">Duct Sizer</a>
+  <a href="../psy/index.html" class="nav-link">Psychrometrics</a>
+  <a href="../chw/index.html" class="nav-link">Chilled Water</a>
+  <a href="../conv/index.html" class="nav-link">Converter</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-status"><span class="dot"></span><span class="label">Ready offline</span></span>
 </nav>
 
-<div class="wrapper">
-    <header>
-        <h1>McQuay Duct & Plenum Sizer Pro</h1>
-        <p>Complete execution toolkit for commercial air systems including swift engineering lookups.</p>
-    </header>
+<div class="shell">
 
-    <div class="toggle-group">
-        <button class="toggle-btn active" id="unit-us" onclick="setUnitSystem('US')">US Units (IP)</button>
-        <button class="toggle-btn" id="unit-si" onclick="setUnitSystem('SI')">SI Units (Metric)</button>
+  <div class="page-head">
+    <div class="titles">
+      <span class="kicker">Round, rectangular &amp; plenum sizing</span>
+      <h1>Duct &amp; Plenum Sizer</h1>
+      <p>Equal-friction or constant-velocity sizing, standard-size lookup, flat-oval ducts and plenum boxes — one page, one unit toggle.</p>
     </div>
-
-    <div class="container">
-        <div class="card">
-            <h2>Design Parameters</h2>
-            
-            <div class="form-group">
-                <label>Sizing Criteria Method</label>
-                <div class="radio-group">
-                    <label class="radio-label"><input type="radio" name="method" value="friction" onchange="toggleMethod()"> Equal Friction</label>
-                    <label class="radio-label"><input type="radio" name="method" value="velocity" checked onchange="toggleMethod()"> Constant Velocity</label>
-                </div>
-            </div>
-
-            <div class="split-card-grid">
-                <div class="form-group">
-                    <label for="flow">Airflow</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="flow" value="3400" oninput="calculate()">
-                        <span class="unit" id="unit-flow">CFM</span>
-                    </div>
-                </div>
-
-                <div class="form-group" id="friction-input-group" style="display: none;">
-                    <label for="friction">Design Friction Rate</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="friction" value="0.1" step="0.01" oninput="calculate()">
-                        <span class="unit" id="unit-friction">in/100ft</span>
-                    </div>
-                </div>
-
-                <div class="form-group" id="velocity-input-group">
-                    <label for="velocity">Target Velocity</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="velocity" value="1200" step="50" oninput="calculate()">
-                        <span class="unit" id="unit-velocity">FPM</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="split-card-grid">
-                <div class="form-group">
-                    <label for="fixedDim" id="label-constraint-select">Side Constraint</label>
-                    <select id="fixedDim" onchange="updateConstraintLabel()">
-                        <option value="height">Lock Height, Find Width</option>
-                        <option value="width">Lock Width, Find Height</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label id="fixedDimLabel" for="fixedValue">Constraint Dimension Value</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="fixedValue" value="8" oninput="calculate()">
-                        <span class="unit" id="unit-dim">inches</span>
-                    </div>
-                </div>
-            </div>
-            
-            <h3 style="font-size:0.95rem; margin:1.5rem 0 0.5rem 0; color:var(--text-muted); border-top:1px dashed var(--border-color); padding-top:1rem;">
-                Standard Industry Sizing Benchmarks (Click to Apply)
-            </h3>
-            <div class="table-scroll">
-            <table class="ref-table">
-                <thead>
-                    <tr>
-                        <th>Application Target</th>
-                        <th id="th-vel">Target Velocity</th>
-                        <th id="th-fric">Friction Rate Target</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="clickable-row" id="ref-row-1" onclick="applyRef(1500, 0.10, 0.8, this)">
-                        <td><span class="bench-check">✓</span> Main Supply Duct</td>
-                        <td id="ref-v1">1200 - 1500 FPM</td>
-                        <td id="ref-f1">0.10 in/100ft</td>
-                    </tr>
-                    <tr class="clickable-row" id="ref-row-2" onclick="applyRef(800, 0.08, 0.6, this)">
-                        <td><span class="bench-check">✓</span> Branch / Runout Duct</td>
-                        <td id="ref-v2">700 - 900 FPM</td>
-                        <td id="ref-f2">0.08 in/100ft</td>
-                    </tr>
-                    <tr class="clickable-row" id="ref-row-3" onclick="applyRef(500, 0.05, 0.4, this)">
-                        <td><span class="bench-check">✓</span> Collar / Neck Damper Run</td>
-                        <td id="ref-v3">400 - 600 FPM</td>
-                        <td id="ref-f3">0.05 in/100ft</td>
-                    </tr>
-                    <tr class="clickable-row" id="ref-row-4" onclick="applyRef(1200, 0.10, 0.8, this)">
-                        <td><span class="bench-check">✓</span> Exhaust Fan Main Run</td>
-                        <td id="ref-v4">1000 - 1200 FPM</td>
-                        <td id="ref-f4">0.10 in/100ft</td>
-                    </tr>
-                    <tr class="clickable-row" id="ref-row-5" onclick="applyRef(1000, 0.08, 0.6, this)">
-                        <td><span class="bench-check">✓</span> Fresh Air Intake Run</td>
-                        <td id="ref-v5">900 - 1000 FPM</td>
-                        <td id="ref-f5">0.08 in/100ft</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Calculated Specifications</h2>
-            <div class="results-list">
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Calculated Velocity</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Actual fluid speed velocity</span>
-                    </div>
-                    <span class="result-val" id="res-velocity">-</span>
-                </div>
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Friction Head Loss</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);" id="res-fric-desc">-</span>
-                    </div>
-                    <span class="result-val" id="res-friction">-</span>
-                </div>
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Exact Round Diameter</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Theoretical Target</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-diameter">-</span>
-                        <span class="sec-val" id="res-diameter-alt"></span>
-                    </div>
-                </div>
-                <div class="result-item" style="border-left: 4px solid var(--accent-color);">
-                    <div>
-                        <label style="margin:0; color: var(--text-main); font-weight: 600;" id="res-rect-label">Required Width</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);" id="res-rect-sub">-</span>
-                    </div>
-                    <div class="result-val" style="color: var(--accent-color);">
-                        <span id="res-rect-value">-</span>
-                        <span class="sec-val" id="res-rect-value-alt"></span>
-                    </div>
-                </div>
-            </div>
-            <div id="aspect-alert" class="alert">Warning: Aspect ratio exceeds 4:1 benchmark guidelines. Consider adjusting side constraints.</div>
-            <div class="btn-row" style="margin-top:1rem;">
-                <button class="tool-btn primary" onclick="copyResults(this, ['res-velocity','res-friction','res-diameter','res-rect-value'])">Copy Results</button>
-                <button class="tool-btn" onclick="resetMainForm()">↺ Reset Duct Sizer</button>
-            </div>
-        </div>
+    <div class="segmented" id="unitToggle" role="group" aria-label="Unit system">
+      <button type="button" data-unit="ip" class="active">US · in / CFM</button>
+      <button type="button" data-unit="si">SI · mm / L·s⁻¹</button>
     </div>
+  </div>
 
-    <div class="card">
-        <h2>Standard Round Duct Sizes (Click to Apply)</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
-            Standard commercial duct sizes with the velocity and friction produced at your current airflow. Click a row to size the main duct to that standard round diameter. The closest size to your calculated diameter is highlighted automatically.
-        </p>
-        <div style="overflow-x: auto;">
-            <table class="ref-table" id="std-round-table">
-                <thead>
-                    <tr>
-                        <th>Round Size</th>
-                        <th>Area</th>
-                        <th id="th-std-vel">Velocity @ Flow</th>
-                        <th id="th-std-fric">Friction @ Flow</th>
-                    </tr>
-                </thead>
-                <tbody id="std-round-body"></tbody>
-            </table>
-        </div>
-    </div>
+  <div class="jump-row">
+    <a href="#sec-main">Round &amp; rectangular</a>
+    <a href="#sec-std">Standard sizes</a>
+    <a href="#sec-oval">Flat oval</a>
+    <a href="#sec-plenum">Plenum box</a>
+  </div>
 
-    <div class="card">
-        <h2>Capsule / Flat Oval Duct Sizer (SMACNA Table A-3 Method)</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
-            Sizes flat oval (capsule) ducts using the Heyt &amp; Diaz equivalent-diameter correlation <strong>D<sub>e</sub> = 1.55 · A<sub>r</sub><sup>0.625</sup> / P<sup>0.25</sup></strong>, matching equal friction and airflow to round duct. Click a standard 2:1 size below to load it.
-        </p>
-
-        <div class="split-card-grid">
-            <div class="form-group">
-                <label for="oval-flow">Oval Duct Airflow</label>
-                <div class="input-wrapper">
-                    <input type="number" id="oval-flow" value="3400" step="50" oninput="calculateOval()">
-                    <span class="unit" id="unit-oval-flow">CFM</span>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="oval-fixed-val" style="color: var(--text-muted);">Standard 2:1 Sizes (Click to Apply)</label>
-                <select id="oval-standard" onchange="applyOvalStandard()">
-                    <option value="20x10">20" × 10"</option>
-                </select>
-            </div>
+  <!-- ============================= MAIN SIZER ============================= -->
+  <section class="block" id="sec-main">
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-title">
+          <div><h2>Design parameters</h2><div class="sub">Round &amp; rectangular duct sizing</div></div>
         </div>
 
-        <div class="split-card-grid">
-            <div class="form-group">
-                <label for="oval-major">Major Axis (A — Overall Width)</label>
-                <div class="input-wrapper">
-                    <input type="number" id="oval-major" value="20" step="1" oninput="applyOvalManual(); calculateOval()">
-                    <span class="unit" id="unit-oval-major">in</span>
-                </div>
-            </div>
+        <fieldset>
+          <legend>Sizing criteria method</legend>
+          <div class="segmented" id="methodToggle" style="width:100%;">
+            <button type="button" data-method="ef" class="active" style="flex:1;">Equal friction</button>
+            <button type="button" data-method="cv" style="flex:1;">Constant velocity</button>
+          </div>
+        </fieldset>
 
-            <div class="form-group">
-                <label for="oval-minor">Minor Axis (B — Height)</label>
-                <div class="input-wrapper">
-                    <input type="number" id="oval-minor" value="10" step="1" oninput="applyOvalManual(); calculateOval()">
-                    <span class="unit" id="unit-oval-minor">in</span>
-                </div>
-            </div>
+        <div class="field">
+          <label for="dQ">Airflow <span class="hint" id="u_dQ">CFM</span></label>
+          <input type="number" id="dQ" inputmode="decimal" step="any" min="0">
+        </div>
+        <div class="field" id="fField_f">
+          <label for="dF">Design friction rate <span class="hint" id="u_dF">in.wg/100ft</span></label>
+          <input type="number" id="dF" inputmode="decimal" step="any" min="0">
+        </div>
+        <div class="field" id="fField_v">
+          <label for="dV">Target velocity <span class="hint" id="u_dV">FPM</span></label>
+          <input type="number" id="dV" inputmode="decimal" step="any" min="0">
         </div>
 
-        <div class="oval-summary">
-            <div class="result-item">
-                <label style="margin:0; display:block;">Cross-Section Area</label>
-                <div class="result-val"><span id="res-oval-area">-</span><span class="sec-val" id="res-oval-area-alt"></span></div>
-            </div>
-            <div class="result-item">
-                <label style="margin:0; display:block;">Perimeter</label>
-                <div class="result-val"><span id="res-oval-perim">-</span><span class="sec-val" id="res-oval-perim-alt"></span></div>
-            </div>
-            <div class="result-item" style="border-left: 4px solid var(--accent-color);">
-                <label style="margin:0; display:block;">Equivalent Round Diameter</label>
-                <div class="result-val" style="color: var(--accent-color);"><span id="res-oval-de">-</span><span class="sec-val" id="res-oval-de-alt"></span></div>
-            </div>
-            <div class="result-item">
-                <label style="margin:0; display:block;">Face Velocity</label>
-                <div class="result-val"><span id="res-oval-vel">-</span><span class="sec-val" id="res-oval-vel-alt"></span></div>
-            </div>
-            <div class="result-item" style="grid-column: 1 / -1;">
-                <label style="margin:0; display:block;">Friction Loss @ Flow</label>
-                <div class="result-val"><span id="res-oval-fric">-</span><span class="sec-val" id="res-oval-fric-alt"></span></div>
-            </div>
-        </div>
-
-        <div class="info-box">
-            <strong>Design Details &amp; Guidelines:</strong> Flat oval ducts fit in shallow ceiling spaces where round ducts won't — they combine round-duct flow efficiency with low height. Keep the minor axis (B) between 40% and 60% of the major axis (A); a 2:1 ratio is the industry standard (SMACNA). The equivalent diameter D<sub>e</sub> preserves friction and airflow — use it with the round-duct friction chart (Table A-3 of SMACNA HVAC Systems Duct Design, 4th Ed.). For mains use 1200&ndash;1500 FPM, branches 700&ndash;900 FPM. Fabrication requires special fittings — add transition losses where round or rectangular sections join oval runs.
+        <fieldset>
+          <legend>Side constraint</legend>
+          <div class="radio-group" id="lockGroup">
+            <label class="radio-option checked"><input type="radio" name="lock" value="h" checked>Lock height, find width</label>
+            <label class="radio-option"><input type="radio" name="lock" value="w">Lock width, find height</label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label for="dLock">Constraint dimension value <span class="hint" id="u_dLock">in</span></label>
+          <input type="number" id="dLock" inputmode="decimal" step="any" min="0">
         </div>
 
         <div class="btn-row">
-            <button class="tool-btn primary" onclick="copyOvalResults(this)">Copy Oval Results</button>
-            <button class="tool-btn" onclick="resetOvalForm()">↺ Reset Oval</button>
+          <button class="btn" id="btnResetMain" type="button"><span class="ico" data-icon="reset"></span>Reset duct sizer</button>
+          <button class="btn" id="btnShareMain" type="button"><span class="ico" data-icon="share"></span>Share</button>
         </div>
-    </div>
+      </div>
 
-    <div class="card">
-        <h2>Plenum Box Sizer (AHU / FAHU Connection Assemblies)</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
-            Calculates custom plenum box sizing parameters based on editable velocity criteria limits. Default parameters load standard low-loss guidelines.
-        </p>
-        
-        <div class="split-card-grid">
-            <div class="form-group">
-                <label for="plen-flow">Plenum Throughput Airflow</label>
-                <div class="input-wrapper">
-                    <input type="number" id="plen-flow" value="3400" oninput="calculatePlenum()">
-                    <span class="unit" id="unit-plen-flow">CFM</span>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="plen-velocity">Target Plenum Face Velocity</label>
-                <div class="input-wrapper">
-                    <input type="number" id="plen-velocity" value="500" step="50" oninput="calculatePlenum()">
-                    <span class="unit" id="unit-plen-vel">FPM</span>
-                </div>
-            </div>
+      <div class="readout-panel">
+        <div class="panel-title">
+          <div><h2>Calculated specification</h2><div class="sub">Live result for the method &amp; constraint selected</div></div>
         </div>
-
-        <div class="split-card-grid">
-            <div class="form-group">
-                <label for="plen-fixed-type">Lock Specified Selection Dimension</label>
-                <select id="plen-fixed-type" onchange="calculatePlenum()">
-                    <option value="height">Lock Height, Find Width & Depth</option>
-                    <option value="width">Lock Width, Find Height & Depth</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="plen-fixed-val">Plenum Lock Value</label>
-                <div class="input-wrapper">
-                    <input type="number" id="plen-fixed-val" value="24" oninput="calculatePlenum()">
-                    <span class="unit" id="unit-plen-dim">inches</span>
-                </div>
-            </div>
+        <div class="readout-grid cols-2">
+          <div class="readout">
+            <div class="r-label">Calculated velocity</div>
+            <div class="r-value" id="rVel">—</div>
+            <div class="r-alt">Actual velocity in the sized rectangle</div>
+          </div>
+          <div class="readout">
+            <div class="r-label">Friction head loss</div>
+            <div class="r-value" id="rFric">—</div>
+            <div class="r-alt">At the round-equivalent diameter</div>
+          </div>
+          <div class="readout featured">
+            <div class="r-label">Exact round diameter</div>
+            <div class="r-value" id="rDround">—</div>
+            <div class="r-alt">Theoretical target, unrounded</div>
+            <div class="r-alt" id="rDroundFab" hidden></div>
+          </div>
+          <div class="readout">
+            <div class="r-label" id="rSideLabel">Required width</div>
+            <div class="r-value" id="rSide">—</div>
+            <div class="r-alt" id="rAspect">Aspect ratio —</div>
+            <div class="r-alt" id="rSideFab" hidden></div>
+          </div>
         </div>
-        
-        <div class="form-group" style="margin-top:0.5rem;">
-            <label style="margin-bottom:4px; font-weight:600; color:var(--text-main);">Calculated Dimensions Result Matrix</label>
-            <div style="background-color:var(--bg-color); border:1px solid var(--border-color); padding:0.85rem 1rem; border-radius:6px; font-weight:600; color:var(--success-color); font-size:1.1rem; min-height:48px;" id="plen-result-box">
-                -
-            </div>
-        </div>
-        
+        <div id="warnAspect" class="alert alert-amber" hidden></div>
         <div class="btn-row">
-            <button class="tool-btn primary" onclick="copyText(document.getElementById('plen-result-box').innerText.replace(/\s+/g,' ').trim(), this)">Copy Plenum Size</button>
-            <button class="tool-btn" onclick="resetPlenumForm()">↺ Reset Plenum</button>
+          <button class="btn btn-primary" id="btnCopyMain" type="button"><span class="ico" data-icon="copy"></span>Copy results</button>
         </div>
+      </div>
     </div>
+
+    <div class="notes-block" style="margin-top:1.1rem;">
+      <strong>Standard design benchmarks</strong> — click a row to load its target velocity and friction rate into the fields above.
+      <div class="table-wrap" style="margin-top:0.7rem;">
+        <table id="benchmarkTable">
+          <thead><tr><th>Application</th><th>Target velocity</th><th>Friction rate</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= STANDARD SIZES ============================= -->
+  <section class="block" id="sec-std">
+    <h2 class="section-title">Standard round duct sizes</h2>
+    <p class="section-sub">Velocity and friction produced at your airflow above, for each catalog size. The row closest to the exact round diameter is highlighted — click any row to lock the main sizer's rectangular width/height solve to that round size's equivalent.</p>
+    <div class="table-wrap">
+      <table id="stdSizeTable">
+        <thead><tr><th>Round size</th><th>Area</th><th>Velocity @ flow</th><th>Friction @ flow</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================= FLAT OVAL ============================= -->
+  <section class="block" id="sec-oval">
+    <h2 class="section-title">Capsule / flat-oval duct sizer</h2>
+    <p class="section-sub">SMACNA Heyt &amp; Diaz correlation — <span class="mono">De = 1.55 · A<sub>area</sub><sup>0.625</sup> / P<sup>0.25</sup></span> — matched to the round-duct friction chart. Keep the minor axis between 40–60% of the major axis; 2:1 is the industry standard.</p>
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-title"><div><h2>Oval inputs</h2></div></div>
+        <div class="field">
+          <label for="ovQ">Oval duct airflow <span class="hint" id="u_ovQ">CFM</span></label>
+          <input type="number" id="ovQ" inputmode="decimal" step="any" min="0">
+        </div>
+        <label class="field-note" style="display:block;margin-bottom:0.5rem;">Standard 2:1 sizes (click to apply)</label>
+        <div class="size-chip-row" id="ovalChips"></div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="ovA">Major axis (A) <span class="hint" id="u_ovA">in</span></label>
+            <input type="number" id="ovA" inputmode="decimal" step="any" min="0">
+          </div>
+          <div class="field">
+            <label for="ovB">Minor axis (B) <span class="hint" id="u_ovB">in</span></label>
+            <input type="number" id="ovB" inputmode="decimal" step="any" min="0">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btnResetOval" type="button"><span class="ico" data-icon="reset"></span>Reset oval</button>
+        </div>
+      </div>
+      <div class="readout-panel">
+        <div class="panel-title"><div><h2>Oval result</h2></div></div>
+        <div class="readout-grid cols-2">
+          <div class="readout"><div class="r-label">Cross-section area</div><div class="r-value" id="rOvArea">—</div></div>
+          <div class="readout"><div class="r-label">Perimeter</div><div class="r-value" id="rOvPerim">—</div></div>
+          <div class="readout featured"><div class="r-label">Equivalent round diameter</div><div class="r-value" id="rOvDe">—</div></div>
+          <div class="readout"><div class="r-label">Face velocity</div><div class="r-value" id="rOvVel">—</div></div>
+          <div class="readout" style="grid-column:1/-1;"><div class="r-label">Friction loss @ flow</div><div class="r-value" id="rOvFric">—</div></div>
+        </div>
+        <div id="warnOvalRatio" class="alert alert-amber" hidden></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnCopyOval" type="button"><span class="ico" data-icon="copy"></span>Copy oval results</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= PLENUM ============================= -->
+  <section class="block" id="sec-plenum">
+    <h2 class="section-title">Plenum box sizer</h2>
+    <p class="section-sub">AHU / FAHU connection assemblies. Face area sized to your target velocity; depth follows the low-loss guideline (1.25× the free side, 18 in / 450 mm minimum).</p>
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-title"><div><h2>Plenum inputs</h2></div></div>
+        <div class="field">
+          <label for="plQ">Plenum throughput airflow <span class="hint" id="u_plQ">CFM</span></label>
+          <input type="number" id="plQ" inputmode="decimal" step="any" min="0">
+        </div>
+        <div class="field">
+          <label for="plV">Target plenum face velocity <span class="hint" id="u_plV">FPM</span></label>
+          <input type="number" id="plV" inputmode="decimal" step="any" min="0">
+        </div>
+        <fieldset>
+          <legend>Locked dimension</legend>
+          <div class="radio-group" id="plLockGroup">
+            <label class="radio-option checked"><input type="radio" name="plLock" value="h" checked>Lock height, find width &amp; depth</label>
+            <label class="radio-option"><input type="radio" name="plLock" value="w">Lock width, find height &amp; depth</label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label for="plLockVal">Plenum lock value <span class="hint" id="u_plLockVal">in</span></label>
+          <input type="number" id="plLockVal" inputmode="decimal" step="any" min="0">
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btnResetPlenum" type="button"><span class="ico" data-icon="reset"></span>Reset plenum</button>
+        </div>
+      </div>
+      <div class="readout-panel">
+        <div class="panel-title"><div><h2>Calculated dimensions</h2></div></div>
+        <div class="readout-grid cols-2">
+          <div class="readout"><div class="r-label">Face area</div><div class="r-value" id="rPlArea">—</div></div>
+          <div class="readout"><div class="r-label" id="rPlFreeLabel">Free width</div><div class="r-value" id="rPlFree">—</div></div>
+          <div class="readout featured" style="grid-column:1/-1;"><div class="r-label">Recommended box (W × H × D)</div><div class="r-value" id="rPlBox">—</div><div class="r-alt" id="rPlBoxFab" hidden></div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnCopyPlenum" type="button"><span class="ico" data-icon="copy"></span>Copy plenum size</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="suite-footer">
+    <span>Equal friction: D = (0.10913·Q^1.9/f)^(1/5.02) · Rectangular: ASHRAE De solved by bisection · SMACNA HVAC Systems Duct Design, 4th Ed.</span>
+    <span><a href="../index.html">← Back to suite</a></span>
+  </footer>
 </div>
 
+<script src="../assets/app.js"></script>
 <script>
-    let currentSystem = 'US';
-    const MM_PER_INCH = 25.0; 
+(function () {
+  const U = HvacSuite.UNITS;
+  const EXACT_M_PER_FT = 0.3048;
+  const EXACT_MM_PER_IN = 25.4; // real conversion, used for area only — lengths/sizes use the suite's nominal U.MM_PER_IN (25) instead
+  const $ = (id) => document.getElementById(id);
+  let unit = 'ip';
+  let method = 'ef';
+  let stdOverrideIn = null; // catalog round size locked by the user, ALWAYS canonical inches — unit-independent, never rescaled on toggle
 
-    const unitConfigs = {
-        US: { flow: 3400, friction: 0.1, velocity: 1200, dim: 8, plenFlow: 3400, plenVel: 500, plenDim: 24, ovalA: 20, ovalB: 10, labelFlow: 'CFM', labelFric: 'in/100ft', labelVel: 'FPM', labelDim: 'inches', labelPlenVel: 'FPM' },
-        SI: { flow: 1600, friction: 0.8, velocity: 6, dim: 200, plenFlow: 1600, plenVel: 2.5, plenDim: 600, ovalA: 500, ovalB: 250, labelFlow: 'L/s', labelFric: 'Pa/m', labelVel: 'm/s', labelDim: 'mm', labelPlenVel: 'm/s' }
-    };
+  /* ---- math core (all canonical IP: inches, CFM, FPM, in.wg/100ft) ---- */
+  function equalFrictionD(Q, f) { return Math.pow((0.10913 * Math.pow(Q, 1.9)) / f, 1 / 5.02); }
+  function frictionAtD(Q, D) { return (0.10913 * Math.pow(Q, 1.9)) / Math.pow(D, 5.02); }
+  function cvD(Q, V) { const A = Q / V; return Math.sqrt((4 * A) / Math.PI) * 12; }
+  function ashraeDe(a, b) { return (1.30 * Math.pow(a * b, 0.625)) / Math.pow(a + b, 0.25); }
+  function bisect(f, lo, hi, iters) {
+    for (let i = 0; i < iters; i++) { const mid = (lo + hi) / 2; if (f(mid) < 0) lo = mid; else hi = mid; }
+    return (lo + hi) / 2;
+  }
+  function solveOtherSide(known, targetDe) {
+    return bisect((x) => ashraeDe(known, x) - targetDe, 0.05, Math.max(500, targetDe * 30), 70);
+  }
+  function ovalArea(A, B) { return (Math.PI * B * B) / 4 + B * (A - B); }
+  function ovalPerim(A, B) { return Math.PI * B + 2 * (A - B); }
+  function ovalDe(A, B) { return (1.55 * Math.pow(ovalArea(A, B), 0.625)) / Math.pow(ovalPerim(A, B), 0.25); }
 
-    function setUnitSystem(system) {
-        currentSystem = system;
-        document.getElementById('unit-us').classList.toggle('active', system === 'US');
-        document.getElementById('unit-si').classList.toggle('active', system === 'SI');
+  /* ---- unit conversions ----
+     Dimensions (diameter/width/height): nominal 25 mm/in (matches suite convention).
+     Airflow: exact 2.1189 CFM per L/s. Velocity: exact 196.85 FPM per m/s.
+     Friction rate: exact physical Pa/m per in.wg/100ft (a real pressure
+     gradient, not a nominal product size — derived from the suite's exact
+     pressure constant and true feet, not the rounded duct-size foot). */
+  const PA_PER_M_PER_INWG100 = (U.KPA_PER_INWG * 1000) / (100 * EXACT_M_PER_FT); // ≈ 8.172
 
-        const config = unitConfigs[system];
-        document.getElementById('unit-flow').innerText = config.labelFlow;
-        document.getElementById('unit-friction').innerText = config.labelFric;
-        document.getElementById('unit-velocity').innerText = config.labelVel;
-        document.getElementById('unit-dim').innerText = config.labelDim;
-        document.getElementById('unit-plen-flow').innerText = config.labelFlow;
-        document.getElementById('unit-plen-vel').innerText = config.labelPlenVel;
-        document.getElementById('unit-plen-dim').innerText = config.labelDim;
-        
-        document.getElementById('flow').value = config.flow;
-        document.getElementById('friction').value = config.friction;
-        document.getElementById('velocity').value = config.velocity;
-        document.getElementById('fixedValue').value = config.dim;
-        document.getElementById('plen-flow').value = config.plenFlow;
-        document.getElementById('plen-velocity').value = config.plenVel;
-        document.getElementById('plen-fixed-val').value = config.plenDim;
+  const toLenIP = (v) => (unit === 'ip' ? v : v / U.MM_PER_IN);
+  const fromLenIP = (v) => (unit === 'ip' ? v : v * U.MM_PER_IN);
+  const toFlowIP = (v) => (unit === 'ip' ? v : v * U.CFM_PER_LS);
+  const fromFlowIP = (v) => (unit === 'ip' ? v : v / U.CFM_PER_LS);
+  const toVelIP = (v) => (unit === 'ip' ? v : v * U.FPM_PER_MS);
+  const fromVelIP = (v) => (unit === 'ip' ? v : v / U.FPM_PER_MS);
+  const toFricIP = (v) => (unit === 'ip' ? v : v / PA_PER_M_PER_INWG100);
+  const fromFricIP = (v) => (unit === 'ip' ? v : v * PA_PER_M_PER_INWG100);
 
-        document.getElementById('unit-oval-flow').innerText = config.labelFlow;
-        document.getElementById('unit-oval-major').innerText = config.labelDim;
-        document.getElementById('unit-oval-minor').innerText = config.labelDim;
-        document.getElementById('oval-flow').value = config.plenFlow;
-        document.getElementById('oval-major').value = config.ovalA;
-        document.getElementById('oval-minor').value = config.ovalB;
-        populateOvalStandards();
-        buildStdTable();
+  function lenLabel() { return unit === 'ip' ? 'in' : 'mm'; }
+  function altLenLabel() { return unit === 'ip' ? 'mm' : 'in'; }
+  function altLen(inchesValue) { return unit === 'ip' ? inchesValue * U.MM_PER_IN : inchesValue; }
+  function dualLenSuffix(inchesValue) { return ` <span class="alt-unit">(${fmtNum(altLen(inchesValue), 1)} ${altLenLabel()})</span>`; }
+  /* Fabrication rounding, faithful to the original tool: round UP to a whole
+     unit, then derive the alternate unit from that rounded primary
+     (IP: in = ceil(v), mm = ceil(in * 25); SI: mm = ceil(v * 25), in = ceil(mm / 25)).
+     ceilEps absorbs float noise — an IP->SI->IP round trip stores fields at
+     3 decimals, which leaves a computed 48 as 48.000012 and would otherwise
+     jump the fabricated size a whole unit. */
+  function ceilEps(v) { return Math.ceil(v - Math.max(1e-9, Math.abs(v) * 1e-6)); }
+  function fabPrimary(inchesValue) { return unit === 'ip' ? ceilEps(inchesValue) : ceilEps(inchesValue * U.MM_PER_IN); }
+  function fabAlt(inchesValue) {
+    const p = fabPrimary(inchesValue);
+    return unit === 'ip' ? ceilEps(p * U.MM_PER_IN) : ceilEps(p / U.MM_PER_IN);
+  }
+  function fabLenSuffix(inchesValue) { return `Fabricate to ${fmtNum(fabPrimary(inchesValue), 0)} ${lenLabel()} (${fmtNum(fabAlt(inchesValue), 0)} ${altLenLabel()})`; }
+  function flowLabel() { return unit === 'ip' ? 'CFM' : 'L·s⁻¹'; }
+  function velLabel() { return unit === 'ip' ? 'FPM' : 'm·s⁻¹'; }
+  function fricLabel() { return unit === 'ip' ? 'in.wg/100ft' : 'Pa/m'; }
+  function fmtNum(v, dp) { dp = dp === undefined ? 2 : dp; return isFinite(v) ? Number(v.toFixed(dp)).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }) : '—'; }
 
-        document.getElementById('th-vel').innerText = `Target Velocity (${config.labelVel})`;
-        document.getElementById('th-fric').innerText = `Friction Target (${config.labelFric})`;
+  /* ================= standard size data ================= */
+  const ROUND_SIZES_IN = [6,7,8,9,10,12,14,16,18,20,22,24,26,28,30,32,34,36,40,44,48,54,60];
+  const ROUND_SIZES_MM = [150,200,250,300,350,400,450,500,560,630,710,800,900,1000,1100,1200,1250];
+  const OVAL_SIZES_IN = [[8,4],[10,5],[12,6],[14,7],[16,8],[18,9],[20,10],[22,11],[24,12],[28,14],[32,16],[36,18],[40,20],[44,22],[48,24]];
 
-        if(system === 'US') {
-            document.getElementById('ref-v1').innerText = "1200 - 1500 FPM"; document.getElementById('ref-f1').innerText = "0.10 in/100ft";
-            document.getElementById('ref-v2').innerText = "700 - 900 FPM";   document.getElementById('ref-f2').innerText = "0.08 in/100ft";
-            document.getElementById('ref-v3').innerText = "400 - 600 FPM";   document.getElementById('ref-f3').innerText = "0.05 in/100ft";
-            document.getElementById('ref-v4').innerText = "1000 - 1200 FPM"; document.getElementById('ref-f4').innerText = "0.10 in/100ft";
-            document.getElementById('ref-v5').innerText = "900 - 1000 FPM";  document.getElementById('ref-f5').innerText = "0.08 in/100ft";
-        } else {
-            document.getElementById('ref-v1').innerText = "6.0 - 7.5 m/s";   document.getElementById('ref-f1').innerText = "0.80 Pa/m";
-            document.getElementById('ref-v2').innerText = "3.5 - 4.5 m/s";   document.getElementById('ref-f2').innerText = "0.65 Pa/m";
-            document.getElementById('ref-v3').innerText = "2.0 - 3.0 m/s";   document.getElementById('ref-f3').innerText = "0.40 Pa/m";
-            document.getElementById('ref-v4').innerText = "5.0 - 6.0 m/s";   document.getElementById('ref-f4').innerText = "0.80 Pa/m";
-            document.getElementById('ref-v5').innerText = "4.5 - 5.0 m/s";   document.getElementById('ref-f5').innerText = "0.65 Pa/m";
-        }
+  const BENCHMARKS = [
+    { name: 'Main supply duct', vLo: 1200, vHi: 1500, f: 0.10 },
+    { name: 'Branch / runout duct', vLo: 700, vHi: 900, f: 0.08 },
+    { name: 'Collar / neck damper run', vLo: 400, vHi: 600, f: 0.05 },
+    { name: 'Exhaust fan main run', vLo: 1000, vHi: 1200, f: 0.10 },
+    { name: 'Fresh air intake run', vLo: 900, vHi: 1000, f: 0.08 },
+  ];
 
-        document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('active'));
+  /* ================= persistence ================= */
+  const DEFAULTS = {
+    unit: 'ip', method: 'ef',
+    dQ: 2000, dF: 0.10, dV: 1350, lock: 'h', dLock: 12,
+    ovQ: 500, ovA: 20, ovB: 10,
+    plQ: 4000, plV: 500, plLock: 'h', plLockVal: 24,
+  };
+  const ALL_FIELDS = ['dQ','dF','dV','dLock','ovQ','ovA','ovB','plQ','plV','plLockVal'];
+  function fieldEls() {
+    const o = {}; ALL_FIELDS.forEach((k) => (o[k] = $(k))); return o;
+  }
+  const FE = fieldEls();
 
-        calculate();
-        calculatePlenum();
-        calculateOval();
+  function currentState() {
+    const s = { unit, method };
+    ALL_FIELDS.forEach((k) => (s[k] = FE[k].value));
+    s.lock = document.querySelector('input[name="lock"]:checked').value;
+    s.plLock = document.querySelector('input[name="plLock"]:checked').value;
+    if (stdOverrideIn !== null) s.stdOverrideIn = stdOverrideIn;
+    return s;
+  }
+  function persist() { HvacSuite.store.set('inputs:duct', currentState()); }
+
+  function applyState(state) {
+    unit = state.unit === 'si' ? 'si' : 'ip';
+    method = state.method === 'cv' ? 'cv' : 'ef';
+    ALL_FIELDS.forEach((k) => { if (state[k] !== undefined) FE[k].value = state[k]; });
+    setRadio('lock', state.lock || 'h');
+    setRadio('plLock', state.plLock || 'h');
+    const so = parseFloat(state.stdOverrideIn);
+    stdOverrideIn = isFinite(so) && so > 0 ? so : null;
+  }
+  function setRadio(name, value) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach((r) => {
+      r.checked = r.value === value;
+      r.closest('.radio-option').classList.toggle('checked', r.checked);
+    });
+  }
+
+  function restore() {
+    const fromUrl = HvacSuite.queryToState();
+    const fromStore = HvacSuite.store.get('inputs:duct', {});
+    applyState(Object.assign({}, DEFAULTS, fromStore, fromUrl));
+  }
+  function loadDefaults() { applyState(DEFAULTS); }
+
+  /* ================= UI painters ================= */
+  function paintUnitLabels() {
+    $('u_dQ').textContent = flowLabel();
+    $('u_dF').textContent = fricLabel();
+    $('u_dV').textContent = velLabel();
+    $('u_dLock').textContent = lenLabel();
+    $('u_ovQ').textContent = flowLabel();
+    $('u_ovA').textContent = lenLabel();
+    $('u_ovB').textContent = lenLabel();
+    $('u_plQ').textContent = flowLabel();
+    $('u_plV').textContent = velLabel();
+    $('u_plLockVal').textContent = lenLabel();
+    document.querySelectorAll('#unitToggle button').forEach((b) => b.classList.toggle('active', b.dataset.unit === unit));
+  }
+  function paintMethod() {
+    document.querySelectorAll('#methodToggle button').forEach((b) => b.classList.toggle('active', b.dataset.method === method));
+    $('fField_f').dataset.hide = method !== 'ef';
+    $('fField_v').dataset.hide = method !== 'cv';
+  }
+
+  function convert(v, kind, from, to) {
+    if (from === to || !isFinite(v)) return v;
+    if (kind === 'len') return from === 'ip' ? v * U.MM_PER_IN : v / U.MM_PER_IN;
+    if (kind === 'flow') return from === 'ip' ? v / U.CFM_PER_LS : v * U.CFM_PER_LS;
+    if (kind === 'vel') return from === 'ip' ? v / U.FPM_PER_MS : v * U.FPM_PER_MS;
+    if (kind === 'fric') return from === 'ip' ? v * PA_PER_M_PER_INWG100 : v / PA_PER_M_PER_INWG100;
+    return v;
+  }
+  const FIELD_KIND = { dQ:'flow', dF:'fric', dV:'vel', dLock:'len', ovQ:'flow', ovA:'len', ovB:'len', plQ:'flow', plV:'vel', plLockVal:'len' };
+
+  function setUnit(newUnit) {
+    if (newUnit === unit) return;
+    ALL_FIELDS.forEach((k) => {
+      const v = parseFloat(FE[k].value);
+      // 6dp, not 3: rounding the converted value to 3dp makes an IP->SI->IP
+      // round trip drift (4000 CFM -> 1887.796 -> 4000.051), which the
+      // fabrication ceil then amplifies into a whole-unit jump.
+      if (isFinite(v)) FE[k].value = Math.round(convert(v, FIELD_KIND[k], unit, newUnit) * 1e6) / 1e6;
+    });
+    unit = newUnit;
+    paintUnitLabels();
+    renderBenchmarks(); renderOvalChips();
+    persist(); recomputeAll();
+  }
+
+  /* ================= section: main sizer ================= */
+  function computeMain() {
+    const Q = toFlowIP(parseFloat($('dQ').value));
+    const lockSide = document.querySelector('input[name="lock"]:checked').value;
+    const lockVal = toLenIP(parseFloat($('dLock').value));
+    if (!isFinite(Q) || Q <= 0 || !isFinite(lockVal) || lockVal <= 0) return null;
+
+    let Dround;
+    if (method === 'ef') {
+      const f = toFricIP(parseFloat($('dF').value));
+      if (!isFinite(f) || f <= 0) return null;
+      Dround = equalFrictionD(Q, f);
+    } else {
+      const V = toVelIP(parseFloat($('dV').value));
+      if (!isFinite(V) || V <= 0) return null;
+      Dround = cvD(Q, V);
     }
+    const naturalD = Dround;
+    if (stdOverrideIn !== null) Dround = stdOverrideIn;
 
-    function applyRef(velUS, fricUS, fricSI, rowId) {
-        const method = document.querySelector('input[name="method"]:checked').value;
-        if(method === 'velocity') {
-            document.getElementById('velocity').value = currentSystem === 'US' ? velUS : Math.round(velUS * 0.00508);
-        } else {
-            document.getElementById('friction').value = currentSystem === 'US' ? fricUS : fricSI;
-        }
-        document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('active'));
-        rowId.classList.add('active');
-        calculate();
+    const otherSide = solveOtherSide(lockVal, Dround);
+    const a = lockSide === 'h' ? otherSide : lockVal; // width
+    const b = lockSide === 'h' ? lockVal : otherSide; // height
+    const vel = Q / ((a * b) / 144);
+    const fric = frictionAtD(Q, Dround);
+    const aspect = Math.max(a, b) / Math.min(a, b);
+
+    return { Q, Dround, naturalD, overridden: stdOverrideIn !== null, a, b, otherSide, lockSide, vel, fric, aspect };
+  }
+
+  function renderMain() {
+    const r = computeMain();
+    if (!r) {
+      ['rVel','rFric','rDround','rSide'].forEach((id) => ($(id).innerHTML = '<span class="unit" style="color:var(--muted-2)">enter values</span>'));
+      $('rAspect').textContent = 'Aspect ratio —';
+      ['rDroundFab','rSideFab'].forEach((id) => ($(id).hidden = true));
+      $('warnAspect').hidden = true;
+      renderStdSizes(null);
+      return;
     }
-
-    function toggleMethod() {
-        const method = document.querySelector('input[name="method"]:checked').value;
-        document.getElementById('friction-input-group').style.display = method === 'friction' ? 'block' : 'none';
-        document.getElementById('velocity-input-group').style.display = method === 'velocity' ? 'block' : 'none';
-        calculate();
+    $('rVel').innerHTML = `${fmtNum(fromVelIP(r.vel))} <span class="unit">${velLabel()}</span>`;
+    $('rFric').innerHTML = `${fmtNum(fromFricIP(r.fric), 4)} <span class="unit">${fricLabel()}</span>`;
+    $('rDround').innerHTML = `${fmtNum(fromLenIP(r.Dround))} <span class="unit">${lenLabel()}</span>${dualLenSuffix(r.Dround)}`;
+    const featuredLabel = document.querySelector('#rDround').closest('.readout').querySelector('.r-label');
+    const featuredAlt = document.querySelector('#rDround').closest('.readout').querySelector('.r-alt');
+    if (r.overridden) {
+      featuredLabel.textContent = 'Locked to standard size';
+      featuredAlt.innerHTML = `Theoretical target was ${fmtNum(fromLenIP(r.naturalD))} ${lenLabel()} — <a class="std-override-note" id="clearOverride" style="margin:0;">use calculated size</a>`;
+    } else {
+      featuredLabel.textContent = 'Exact round diameter';
+      featuredAlt.textContent = 'Theoretical target, unrounded';
     }
+    $('rSideLabel').textContent = r.lockSide === 'h' ? 'Required width' : 'Required height';
+    $('rSide').innerHTML = `${fmtNum(fromLenIP(r.otherSide))} <span class="unit">${lenLabel()}</span>${dualLenSuffix(r.otherSide)}`;
+    $('rAspect').textContent = `Aspect ratio ${r.aspect.toFixed(2)}:1 · ${fmtNum(fromLenIP(r.a))} × ${fmtNum(fromLenIP(r.b))} ${lenLabel()}`;
+    $('rDroundFab').hidden = false;
+    $('rDroundFab').textContent = fabLenSuffix(r.Dround);
+    $('rSideFab').hidden = false;
+    $('rSideFab').textContent = fabLenSuffix(r.otherSide);
+    const clearLink = document.getElementById('clearOverride');
+    if (clearLink) clearLink.addEventListener('click', () => { stdOverrideIn = null; recomputeAll(); HvacSuite.toast('Back to calculated size'); });
 
-    function updateConstraintLabel() { calculate(); }
+    const warn = $('warnAspect');
+    if (r.aspect > 4) {
+      warn.hidden = false;
+      warn.innerHTML = HvacSuite.ICONS.warn + '<span>Aspect ratio exceeds the 4:1 benchmark guideline. Consider adjusting the side constraint or splitting into two ducts.</span>';
+    } else warn.hidden = true;
 
-    function clearDuctResults() {
-        document.getElementById('res-velocity').innerText = '-';
-        document.getElementById('res-friction').innerText = '-';
-        document.getElementById('res-diameter').innerText = '-';
-        document.getElementById('res-diameter-alt').innerText = '';
-        document.getElementById('res-rect-value').innerText = '-';
-        document.getElementById('res-rect-value-alt').innerText = '';
-        document.getElementById('res-rect-sub').innerText = '-';
-        document.getElementById('aspect-alert').style.display = 'none';
-        highlightClosestStd(0);
+    renderStdSizes(r);
+  }
+
+  function renderBenchmarks() {
+    const tbody = document.querySelector('#benchmarkTable tbody');
+    tbody.innerHTML = '';
+    BENCHMARKS.forEach((b) => {
+      const vLo = fromVelIP(b.vLo), vHi = fromVelIP(b.vHi), f = fromFricIP(b.f);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="font-family:var(--font-ui);">${b.name}</td><td>${fmtNum(vLo,0)}–${fmtNum(vHi,0)} ${velLabel()}</td><td>${fmtNum(f, 2)} ${fricLabel()}</td>`;
+      tr.title = 'Click to load this benchmark';
+      tr.addEventListener('click', () => {
+        $('dV').value = Math.round(fromVelIP((b.vLo + b.vHi) / 2) * 10) / 10;
+        $('dF').value = Math.round(fromFricIP(b.f) * 1000) / 1000;
+        persist(); recomputeAll();
+        HvacSuite.toast(`Loaded "${b.name}" benchmark`);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderStdSizes(mainResult) {
+    const tbody = document.querySelector('#stdSizeTable tbody');
+    tbody.innerHTML = '';
+    const sizes = unit === 'ip' ? ROUND_SIZES_IN : ROUND_SIZES_MM;
+    const Q = mainResult ? mainResult.Q : toFlowIP(parseFloat($('dQ').value));
+    // When a catalog size is locked, only that row is highlighted; otherwise
+    // highlight the row closest to the calculated (unlocked) target diameter.
+    const locked = mainResult && mainResult.overridden ? mainResult.Dround : null;
+    const targetForHighlight = mainResult ? mainResult.naturalD : null;
+    let closestIdx = -1, closestDiff = Infinity;
+    if (targetForHighlight !== null && locked === null) {
+      sizes.forEach((s, i) => {
+        const sIn = unit === 'ip' ? s : s / U.MM_PER_IN;
+        const diff = Math.abs(sIn - targetForHighlight);
+        if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }
+      });
     }
+    sizes.forEach((s, i) => {
+      const dIn = unit === 'ip' ? s : s / U.MM_PER_IN;
+      const areaFt2 = Math.PI * Math.pow(dIn / 12, 2) / 4;
+      const vel = isFinite(Q) && Q > 0 ? Q / areaFt2 : NaN;
+      const fric = isFinite(Q) && Q > 0 ? frictionAtD(Q, dIn) : NaN;
+      const areaDisp = unit === 'ip' ? areaFt2 : areaFt2 * 0.092903; // ft² -> m², real physical area (not the nominal 1in=25mm sizing rule — that applies to lengths only)
+      const tr = document.createElement('tr');
+      if (i === closestIdx) tr.classList.add('closest');
+      if (locked !== null && Math.abs(dIn - locked) < 1e-6) tr.classList.add('closest');
+      tr.innerHTML = `<td>${s} ${lenLabel()} <span class="alt-unit">(${fmtNum(altLen(dIn), unit==='ip'?0:1)} ${altLenLabel()})</span></td><td>${fmtNum(areaDisp, unit==='ip'?2:3)} ${unit==='ip'?'ft²':'m²'}</td><td>${fmtNum(fromVelIP(vel),0)} ${velLabel()}</td><td>${fmtNum(fromFricIP(fric),4)} ${fricLabel()}</td>`;
+      tr.title = 'Click to lock the sizer above to this standard size';
+      tr.addEventListener('click', () => {
+        stdOverrideIn = dIn;
+        recomputeAll();
+        HvacSuite.toast(`Duct sizer locked to ${s} ${lenLabel()} round`);
+      });
+      tbody.appendChild(tr);
+    });
+  }
 
-    function calculate() {
-        let flow = parseFloat(document.getElementById('flow').value);
-        const method = document.querySelector('input[name="method"]:checked').value;
-        const fixedDim = document.getElementById('fixedDim').value;
-        let fixedVal = parseFloat(document.getElementById('fixedValue').value);
-
-        if (!flow || flow <= 0 || !fixedVal || fixedVal <= 0) { clearDuctResults(); return; }
-
-        let internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
-        let internalFriction = 0;
-        let internalVelocity = 0;
-        let internalDiameter = 0;
-
-        if (method === 'friction') {
-            let inputFric = parseFloat(document.getElementById('friction').value);
-            if (!inputFric || inputFric <= 0) { clearDuctResults(); return; }
-            internalFriction = currentSystem === 'SI' ? inputFric * 0.0401865 : inputFric;
-            
-            internalDiameter = Math.pow((0.10913 * Math.pow(internalCFM, 1.9)) / internalFriction, 1 / 5.02);
-            let areaSqFt = (Math.PI * Math.pow(internalDiameter / 12, 2)) / 4;
-            internalVelocity = internalCFM / areaSqFt;
-        } else {
-            let inputVel = parseFloat(document.getElementById('velocity').value);
-            if (!inputVel || inputVel <= 0) { clearDuctResults(); return; }
-            internalVelocity = currentSystem === 'SI' ? inputVel * 196.85 : inputVel;
-            
-            let areaSqFt = internalCFM / internalVelocity;
-            internalDiameter = Math.sqrt((areaSqFt * 4) / Math.PI) * 12;
-            internalFriction = (0.10913 * Math.pow(internalCFM, 1.9)) / Math.pow(internalDiameter, 5.02);
-        }
-
-        let internalFixedVal = currentSystem === 'SI' ? fixedVal / MM_PER_INCH : fixedVal; 
-        let low = 1, high = 1000;
-        
-        for (let i = 0; i < 40; i++) {
-            let mid = (low + high) / 2;
-            let a = fixedDim === 'height' ? internalFixedVal : mid;
-            let b = fixedDim === 'height' ? mid : internalFixedVal;
-            
-            let eqDiameter = 1.30 * Math.pow(Math.pow(a * b, 0.625) / Math.pow(a + b, 0.25), 1);
-            if (eqDiameter < internalDiameter) { low = mid; } else { high = mid; }
-        }
-        let internalCalculatedSide = (low + high) / 2;
-
-        let inchDiam, mmDiam, inchCalculatedSide, mmCalculatedSide;
-
-        if (currentSystem === 'US') {
-            inchDiam = Math.ceil(internalDiameter);
-            mmDiam = Math.ceil(inchDiam * MM_PER_INCH); 
-            inchCalculatedSide = Math.ceil(internalCalculatedSide);
-            mmCalculatedSide = Math.ceil(inchCalculatedSide * MM_PER_INCH);
-        } else {
-            mmDiam = Math.ceil(internalDiameter * MM_PER_INCH);
-            inchDiam = Math.ceil(mmDiam / MM_PER_INCH); 
-            mmCalculatedSide = Math.ceil(internalCalculatedSide * MM_PER_INCH);
-            inchCalculatedSide = Math.ceil(mmCalculatedSide / MM_PER_INCH);
-        }
-
-        let finalVelocity = currentSystem === 'SI' ? internalVelocity * 0.00508 : internalVelocity;
-        let finalFriction = currentSystem === 'SI' ? (internalFriction / 0.0401865) : internalFriction;
-
-        document.getElementById('res-velocity').innerText = Math.round(finalVelocity) + (currentSystem === 'SI' ? ' m/s' : ' FPM');
-        document.getElementById('res-friction').innerText = finalFriction.toFixed(3) + (currentSystem === 'SI' ? ' Pa/m' : ' in.w.g.');
-        document.getElementById('res-fric-desc').innerText = currentSystem === 'SI' ? 'Per meter of run' : 'Per 100 feet of run';
-
-        if (currentSystem === 'US') {
-            document.getElementById('res-diameter').innerText = inchDiam + ' in';
-            document.getElementById('res-diameter-alt').innerText = `(${mmDiam} mm)`;
-        } else {
-            document.getElementById('res-diameter').innerText = mmDiam + ' mm';
-            document.getElementById('res-diameter-alt').innerText = `(${inchDiam} in)`;
-        }
-
-        const constraintValInch = currentSystem === 'SI' ? Math.ceil(fixedVal / MM_PER_INCH) : fixedVal;
-        const constraintValMm = currentSystem === 'SI' ? fixedVal : Math.ceil(fixedVal * MM_PER_INCH);
-
-        if (fixedDim === 'height') {
-            document.getElementById('res-rect-label').innerText = 'Required Width';
-            document.getElementById('res-rect-sub').innerText = `At fixed Height: ${constraintValInch}" / ${constraintValMm} mm`;
-            
-            if (currentSystem === 'US') {
-                document.getElementById('res-rect-value').innerText = inchCalculatedSide + ' in';
-                document.getElementById('res-rect-value-alt').innerText = `(${mmCalculatedSide} mm)`;
-            } else {
-                document.getElementById('res-rect-value').innerText = mmCalculatedSide + ' mm';
-                document.getElementById('res-rect-value-alt').innerText = `(${inchCalculatedSide} in)`;
-            }
-            toggleAlert(inchCalculatedSide, parseFloat(constraintValInch));
-        } else {
-            document.getElementById('res-rect-label').innerText = 'Required Height';
-            document.getElementById('res-rect-sub').innerText = `At fixed Width: ${constraintValInch}" / ${constraintValMm} mm`;
-            
-            if (currentSystem === 'US') {
-                document.getElementById('res-rect-value').innerText = inchCalculatedSide + ' in';
-                document.getElementById('res-rect-value-alt').innerText = `(${mmCalculatedSide} mm)`;
-            } else {
-                document.getElementById('res-rect-value').innerText = mmCalculatedSide + ' mm';
-                document.getElementById('res-rect-value-alt').innerText = `(${inchCalculatedSide} in)`;
-            }
-            toggleAlert(parseFloat(constraintValInch), inchCalculatedSide);
-        }
-
-        updateStdCells();
-        highlightClosestStd(internalDiameter);
+  /* ================= section: flat oval ================= */
+  function renderOvalChips() {
+    const host = $('ovalChips');
+    host.innerHTML = '';
+    OVAL_SIZES_IN.forEach(([a, b]) => {
+      const aDisp = unit === 'ip' ? a : a * U.MM_PER_IN;
+      const bDisp = unit === 'ip' ? b : b * U.MM_PER_IN;
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'size-chip';
+      chip.textContent = `${aDisp}${unit==='ip'?'"':''} × ${bDisp}${unit==='ip'?'"':''}`;
+      chip.addEventListener('click', () => {
+        $('ovA').value = aDisp; $('ovB').value = bDisp;
+        persist(); recomputeAll();
+      });
+      host.appendChild(chip);
+    });
+  }
+  function computeOval() {
+    const Q = toFlowIP(parseFloat($('ovQ').value));
+    const A = toLenIP(parseFloat($('ovA').value));
+    const B = toLenIP(parseFloat($('ovB').value));
+    if (![Q,A,B].every((v) => isFinite(v) && v > 0) || B >= A) return null;
+    const area = ovalArea(A, B), perim = ovalPerim(A, B), de = ovalDe(A, B);
+    const areaFt2 = area / 144;
+    const vel = Q / areaFt2;
+    const fric = frictionAtD(Q, de);
+    const ratio = B / A;
+    return { A, B, area, perim, de, vel, fric, ratio };
+  }
+  function renderOval() {
+    const r = computeOval();
+    const warn = $('warnOvalRatio');
+    if (!r) {
+      ['rOvArea','rOvPerim','rOvDe','rOvVel','rOvFric'].forEach((id) => ($(id).innerHTML = '—'));
+      warn.hidden = true;
+      return;
     }
+    const areaDisp = unit === 'ip' ? r.area : r.area * (EXACT_MM_PER_IN * EXACT_MM_PER_IN); // in² -> mm², real physical area (not the nominal 1in=25mm rule)
+    const perimDisp = unit === 'ip' ? r.perim : r.perim * U.MM_PER_IN;
+    $('rOvArea').innerHTML = `${fmtNum(areaDisp, unit==='ip'?1:0)} <span class="unit">${unit==='ip'?'in²':'mm²'}</span>`;
+    $('rOvPerim').innerHTML = `${fmtNum(perimDisp, 1)} <span class="unit">${lenLabel()}</span>`;
+    $('rOvDe').innerHTML = `${fmtNum(fromLenIP(r.de))} <span class="unit">${lenLabel()}</span>${dualLenSuffix(r.de)}`;
+    $('rOvVel').innerHTML = `${fmtNum(fromVelIP(r.vel), 0)} <span class="unit">${velLabel()}</span>`;
+    $('rOvFric').innerHTML = `${fmtNum(fromFricIP(r.fric), 4)} <span class="unit">${fricLabel()}</span>`;
+    if (r.ratio < 0.4 || r.ratio > 0.6) {
+      warn.hidden = false;
+      warn.innerHTML = HvacSuite.ICONS.warn + `<span>Minor/major ratio is ${(r.ratio*100).toFixed(0)}% — outside the recommended 40–60% band for standard flat-oval fittings.</span>`;
+    } else warn.hidden = true;
+  }
 
-    function calculatePlenum() {
-        let plenFlow = parseFloat(document.getElementById('plen-flow').value);
-        let targetVel = parseFloat(document.getElementById('plen-velocity').value);
-        let fixedType = document.getElementById('plen-fixed-type').value;
-        let fixedVal = parseFloat(document.getElementById('plen-fixed-val').value);
-
-        if(!plenFlow || plenFlow <= 0 || !targetVel || targetVel <= 0 || !fixedVal || fixedVal <= 0) { clearPlenum(); return; }
-
-        // Process target internal velocity standard
-        let flowCFM = currentSystem === 'SI' ? plenFlow * 2.11888 : plenFlow;
-        let velocityFPM = currentSystem === 'SI' ? targetVel * 196.85 : targetVel;
-
-        let requiredAreaSqFt = flowCFM / velocityFPM; 
-        let requiredAreaSqIn = requiredAreaSqFt * 144;
-
-        let fixedValInch = currentSystem === 'SI' ? fixedVal / MM_PER_INCH : fixedVal;
-        let calculatedSideInch = requiredAreaSqIn / fixedValInch;
-        
-        let depthInch = Math.max(calculatedSideInch * 1.25, 18); 
-
-        let wInch, hInch, dInch, wMm, hMm, dMm;
-
-        if(fixedType === 'height') {
-            hInch = Math.ceil(fixedValInch);
-            wInch = Math.ceil(calculatedSideInch);
-            dInch = Math.ceil(depthInch);
-        } else {
-            wInch = Math.ceil(fixedValInch);
-            hInch = Math.ceil(calculatedSideInch);
-            dInch = Math.ceil(depthInch);
-        }
-
-        wMm = wInch * MM_PER_INCH;
-        hMm = hInch * MM_PER_INCH;
-        dMm = dInch * MM_PER_INCH;
-
-        let areaLabel = currentSystem === 'US'
-            ? `Required Face Area: ${requiredAreaSqFt.toFixed(1)} sq.ft`
-            : `Required Face Area: ${(requiredAreaSqFt * 0.0929).toFixed(2)} m²`;
-
-        if(currentSystem === 'US') {
-            document.getElementById('plen-result-box').innerHTML = `W: ${wInch}" &nbsp;×&nbsp; H: ${hInch}" &nbsp;×&nbsp; D: ${dInch}" <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">Metric Conversion: ${wMm} × ${hMm} × ${dMm} mm</span><span style="font-size:0.8rem; display:block; color:var(--text-muted); font-weight:400; margin-top:2px;">${areaLabel}</span>`;
-        } else {
-            document.getElementById('plen-result-box').innerHTML = `W: ${wMm} mm &nbsp;×&nbsp; H: ${hMm} mm &nbsp;×&nbsp; D: ${dMm} mm <span style="font-size:0.85rem; display:block; color:var(--text-muted); font-weight:400; margin-top:4px;">US-IP Conversion: ${wInch}" × ${hInch}" × ${dInch}"</span><span style="font-size:0.8rem; display:block; color:var(--text-muted); font-weight:400; margin-top:2px;">${areaLabel}</span>`;
-        }
+  /* ================= section: plenum ================= */
+  function computePlenum() {
+    const Q = toFlowIP(parseFloat($('plQ').value));
+    const V = toVelIP(parseFloat($('plV').value));
+    const lock = document.querySelector('input[name="plLock"]:checked').value;
+    const lockVal = toLenIP(parseFloat($('plLockVal').value));
+    if (![Q,V,lockVal].every((v) => isFinite(v) && v > 0)) return null;
+    const areaFt2 = Q / V;
+    const freeSideIn = (areaFt2 * 144) / lockVal;
+    const depthIn = Math.max(freeSideIn * 1.25, 18);
+    const width = lock === 'h' ? freeSideIn : lockVal;
+    const height = lock === 'h' ? lockVal : freeSideIn;
+    return { areaFt2, freeSideIn, depthIn, width, height, lock };
+  }
+  function renderPlenum() {
+    const r = computePlenum();
+    if (!r) {
+      $('rPlArea').innerHTML = '—'; $('rPlFree').innerHTML = '—'; $('rPlBox').innerHTML = '—';
+      $('rPlBoxFab').hidden = true;
+      return;
     }
+    const areaDisp = unit === 'ip' ? r.areaFt2 : r.areaFt2 * 0.092903; // real physical area — lengths use the nominal 1in=25mm rule, area does not
+    $('rPlArea').innerHTML = `${fmtNum(areaDisp, unit==='ip'?1:2)} <span class="unit">${unit==='ip'?'ft²':'m²'}</span>`;
+    $('rPlFreeLabel').textContent = r.lock === 'h' ? 'Free width' : 'Free height';
+    $('rPlFree').innerHTML = `${fmtNum(fromLenIP(r.freeSideIn))} <span class="unit">${lenLabel()}</span>`;
+    const altW = altLen(r.width), altH = altLen(r.height), altD = altLen(r.depthIn);
+    $('rPlBox').innerHTML = `${fmtNum(fromLenIP(r.width))} × ${fmtNum(fromLenIP(r.height))} × ${fmtNum(fromLenIP(r.depthIn))} <span class="unit">${lenLabel()}</span> <span class="alt-unit">(${fmtNum(altW,0)} × ${fmtNum(altH,0)} × ${fmtNum(altD,0)} ${altLenLabel()})</span>`;
+    $('rPlBoxFab').hidden = false;
+    $('rPlBoxFab').textContent = `Fabricate to ${fmtNum(fabPrimary(r.width), 0)} × ${fmtNum(fabPrimary(r.height), 0)} × ${fmtNum(fabPrimary(r.depthIn), 0)} ${lenLabel()} (${fmtNum(fabAlt(r.width), 0)} × ${fmtNum(fabAlt(r.height), 0)} × ${fmtNum(fabAlt(r.depthIn), 0)} ${altLenLabel()})`;
+  }
 
-    function clearPlenum() {
-        document.getElementById('plen-result-box').innerHTML = '-';
-    }
+  /* ================= wiring ================= */
+  function recomputeAll() { renderMain(); renderOval(); renderPlenum(); }
 
-    function resetMainForm() {
-        const cfg = unitConfigs[currentSystem];
-        document.getElementById('flow').value = cfg.flow;
-        document.getElementById('friction').value = cfg.friction;
-        document.getElementById('velocity').value = cfg.velocity;
-        document.getElementById('fixedValue').value = cfg.dim;
-        document.querySelectorAll('.clickable-row').forEach(r => r.classList.remove('active'));
-        toggleMethod();
-        calculate();
-    }
+  document.querySelectorAll('#unitToggle button').forEach((b) => b.addEventListener('click', () => setUnit(b.dataset.unit)));
+  document.querySelectorAll('#methodToggle button').forEach((b) => b.addEventListener('click', () => { method = b.dataset.method; paintMethod(); persist(); recomputeAll(); }));
+  document.querySelectorAll('input[name="lock"]').forEach((r) => r.addEventListener('change', () => { setRadio('lock', r.value); persist(); recomputeAll(); }));
+  document.querySelectorAll('input[name="plLock"]').forEach((r) => r.addEventListener('change', () => { setRadio('plLock', r.value); persist(); recomputeAll(); }));
+  ALL_FIELDS.forEach((k) => FE[k].addEventListener('input', () => { persist(); recomputeAll(); }));
 
-    function resetPlenumForm() {
-        const cfg = unitConfigs[currentSystem];
-        document.getElementById('plen-flow').value = cfg.plenFlow;
-        document.getElementById('plen-velocity').value = cfg.plenVel;
-        document.getElementById('plen-fixed-val').value = cfg.plenDim;
-        calculatePlenum();
-    }
+  $('btnResetMain').addEventListener('click', () => {
+    ['dQ','dF','dV','dLock'].forEach((k) => (FE[k].value = DEFAULTS[k]));
+    setRadio('lock', DEFAULTS.lock); method = DEFAULTS.method; paintMethod();
+    stdOverrideIn = null;
+    persist(); recomputeAll(); HvacSuite.toast('Duct sizer reset');
+  });
+  $('btnResetOval').addEventListener('click', () => {
+    ['ovQ','ovA','ovB'].forEach((k) => (FE[k].value = DEFAULTS[k]));
+    persist(); recomputeAll(); HvacSuite.toast('Oval sizer reset');
+  });
+  $('btnResetPlenum').addEventListener('click', () => {
+    ['plQ','plV','plLockVal'].forEach((k) => (FE[k].value = DEFAULTS[k]));
+    setRadio('plLock', DEFAULTS.plLock);
+    persist(); recomputeAll(); HvacSuite.toast('Plenum sizer reset');
+  });
+  $('btnShareMain').addEventListener('click', () => HvacSuite.shareLink(currentState()));
 
-    function copyResults(btn, ids) {
-        const parts = ids.map(id => document.getElementById(id).innerText).filter(t => t && t !== '-');
-        copyText(parts.join(' | '), btn);
-    }
+  $('btnCopyMain').addEventListener('click', () => {
+    const text = `Duct Sizer (${method === 'ef' ? 'Equal Friction' : 'Constant Velocity'})\n` +
+      `Airflow: ${$('dQ').value} ${flowLabel()}\n` +
+      `Velocity: ${$('rVel').textContent}\nFriction: ${$('rFric').textContent}\n` +
+      `Exact round diameter: ${$('rDround').textContent}\n${$('rSideLabel').textContent}: ${$('rSide').textContent}\n${$('rAspect').textContent}`;
+    HvacSuite.copyText(text, 'Duct results copied');
+  });
+  $('btnCopyOval').addEventListener('click', () => {
+    const text = `Flat-Oval Duct\nAirflow: ${$('ovQ').value} ${flowLabel()}\nSize: ${$('ovA').value} × ${$('ovB').value} ${lenLabel()}\n` +
+      `Area: ${$('rOvArea').textContent}\nPerimeter: ${$('rOvPerim').textContent}\nEquivalent diameter: ${$('rOvDe').textContent}\n` +
+      `Velocity: ${$('rOvVel').textContent}\nFriction: ${$('rOvFric').textContent}`;
+    HvacSuite.copyText(text, 'Oval results copied');
+  });
+  $('btnCopyPlenum').addEventListener('click', () => {
+    const text = `Plenum Box\nAirflow: ${$('plQ').value} ${flowLabel()}\nTarget velocity: ${$('plV').value} ${velLabel()}\n` +
+      `Face area: ${$('rPlArea').textContent}\nRecommended box: ${$('rPlBox').textContent}`;
+    HvacSuite.copyText(text, 'Plenum size copied');
+  });
 
-    function copyText(text, btn) {
-        const done = () => {
-            const old = btn.innerText;
-            btn.innerText = '✓ Copied';
-            setTimeout(() => { btn.innerText = old; }, 1500);
-        };
-        const fallback = () => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch (e) {}
-            document.body.removeChild(ta);
-            done();
-        };
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, fallback);
-        } else { fallback(); }
-    }
-
-    // ---- Standard round sizes ----
-    const stdSizes = {
-        US: [6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 40, 42, 48, 54, 60],
-        SI: [150, 200, 250, 300, 350, 400, 450, 500, 560, 600, 630, 710, 800, 900, 1000, 1120, 1250]
-    };
-
-    function buildStdTable() {
-        const body = document.getElementById('std-round-body');
-        const sizes = stdSizes[currentSystem];
-        document.getElementById('th-std-vel').innerText = currentSystem === 'US' ? 'Velocity @ Flow' : 'Velocity @ Flow';
-        document.getElementById('th-std-fric').innerText = currentSystem === 'US' ? 'Friction @ Flow' : 'Friction @ Flow';
-
-        let html = '';
-        sizes.forEach((size, i) => {
-            let sizeLabel, areaLabel;
-            if (currentSystem === 'US') {
-                sizeLabel = size + ' in';
-                areaLabel = (Math.PI * Math.pow(size, 2) / 4 / 144).toFixed(2) + ' ft²';
-            } else {
-                sizeLabel = size + ' mm';
-                areaLabel = (Math.PI * Math.pow(size / 1000, 2) / 4).toFixed(3) + ' m²';
-            }
-            html += `<tr class="clickable-row" id="std-row-${i}" onclick="applyStandardSize(${size})">
-                <td><span class="std-sel">✓</span> ${sizeLabel}</td>
-                <td>${areaLabel}</td>
-                <td id="std-v-${i}">-</td>
-                <td id="std-f-${i}">-</td>
-            </tr>`;
-        });
-        body.innerHTML = html;
-        updateStdCells();
-    }
-
-    function updateStdCells() {
-        const flow = parseFloat(document.getElementById('flow').value);
-        const sizes = stdSizes[currentSystem];
-        if (!flow || flow <= 0) return;
-
-        const internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
-        sizes.forEach((size, i) => {
-            const dInch = currentSystem === 'SI' ? size / MM_PER_INCH : size;
-            const areaSqFt = Math.PI * Math.pow(dInch / 12, 2) / 4;
-            const velFPM = internalCFM / areaSqFt;
-            const fricIP = 0.10913 * Math.pow(internalCFM, 1.9) / Math.pow(dInch, 5.02);
-            const velCell = document.getElementById('std-v-' + i);
-            const fricCell = document.getElementById('std-f-' + i);
-            velCell.innerText = currentSystem === 'SI'
-                ? Math.round(velFPM * 0.00508 * 10) / 10 + ' m/s'
-                : Math.round(velFPM) + ' FPM';
-            fricCell.innerText = currentSystem === 'SI'
-                ? (fricIP / 0.0401865).toFixed(2) + ' Pa/m'
-                : fricIP.toFixed(2) + ' in.wg';
-        });
-    }
-
-    function highlightClosestStd(dInch) {
-        document.querySelectorAll('#std-round-body tr').forEach(r => r.classList.remove('std-row-active'));
-        if (!dInch || dInch <= 0) return;
-        const sizes = stdSizes[currentSystem];
-        let closest = 0, bestDiff = Infinity;
-        sizes.forEach((size, i) => {
-            const v = currentSystem === 'SI' ? size / MM_PER_INCH : size;
-            const diff = Math.abs(v - dInch);
-            if (diff < bestDiff) { bestDiff = diff; closest = i; }
-        });
-        document.getElementById('std-row-' + closest).classList.add('std-row-active');
-    }
-
-    function applyStandardSize(size) {
-        const flow = parseFloat(document.getElementById('flow').value);
-        if (!flow || flow <= 0) return;
-        const internalCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
-        const dInch = currentSystem === 'SI' ? size / MM_PER_INCH : size;
-        const method = document.querySelector('input[name="method"]:checked').value;
-
-        if (method === 'velocity') {
-            const areaSqFt = Math.PI * Math.pow(dInch / 12, 2) / 4;
-            const velFPM = internalCFM / areaSqFt;
-            document.getElementById('velocity').value = currentSystem === 'SI'
-                ? Math.round(velFPM * 0.00508 * 10) / 10
-                : Math.round(velFPM / 10) * 10;
-        } else {
-            const fricIP = 0.10913 * Math.pow(internalCFM, 1.9) / Math.pow(dInch, 5.02);
-            document.getElementById('friction').value = currentSystem === 'SI'
-                ? Math.round((fricIP / 0.0401865) * 100) / 100
-                : Math.round(fricIP * 100) / 100;
-        }
-        calculate();
-    }
-
-    // ---- Capsule / Flat Oval ----
-    const ovalStandards = {
-        US: ['12x6','14x7','16x8','18x9','20x10','22x11','24x12','26x13','28x14','30x15','32x16','34x17','36x18','40x20','44x22','48x24'],
-        SI: ['300x150','350x175','400x200','450x225','500x250','550x275','600x300','650x325','700x350','750x375','800x400','900x450','1000x500','1200x600']
-    };
-
-    function populateOvalStandards() {
-        const sel = document.getElementById('oval-standard');
-        let html = '<option value="custom" disabled>-- Standard 2:1 Sizes --</option>';
-        ovalStandards[currentSystem].forEach(s => {
-            html += `<option value="${s}">${s.replace('x', '" × ')}"</option>`;
-        });
-        sel.innerHTML = html;
-    }
-
-    function applyOvalStandard() {
-        const val = document.getElementById('oval-standard').value;
-        if (!val || val === 'custom') return;
-        const parts = val.split('x');
-        document.getElementById('oval-major').value = parseInt(parts[0]);
-        document.getElementById('oval-minor').value = parseInt(parts[1]);
-        calculateOval();
-    }
-
-    function applyOvalManual() {
-        const sel = document.getElementById('oval-standard');
-        const A = document.getElementById('oval-major').value;
-        const B = document.getElementById('oval-minor').value;
-        const match = ovalStandards[currentSystem].find(s => s === A + 'x' + B);
-        sel.value = match || 'custom';
-    }
-
-    function calcOvalInches(A, B, flowCFM) {
-        const ar = (Math.PI * B * B) / 4 + B * (A - B);
-        const p = Math.PI * B + 2 * (A - B);
-        const de = 1.55 * Math.pow(ar, 0.625) / Math.pow(p, 0.25);
-        const areaSqFt = ar / 144;
-        const velFPM = flowCFM / areaSqFt;
-        const fricIP = 0.10913 * Math.pow(flowCFM, 1.9) / Math.pow(de, 5.02);
-        return { ar, p, de, areaSqFt, velFPM, fricIP };
-    }
-
-    function calculateOval() {
-        let flow = parseFloat(document.getElementById('oval-flow').value);
-        let A = parseFloat(document.getElementById('oval-major').value);
-        let B = parseFloat(document.getElementById('oval-minor').value);
-
-        const clear = () => {
-            ['res-oval-area','res-oval-area-alt','res-oval-perim','res-oval-perim-alt','res-oval-de','res-oval-de-alt','res-oval-vel','res-oval-vel-alt','res-oval-fric','res-oval-fric-alt'].forEach(id => {
-                document.getElementById(id).innerText = id.endsWith('alt') ? '' : '-';
-            });
-        };
-
-        if (!flow || flow <= 0 || !A || A <= 0 || !B || B <= 0 || B >= A) { clear(); return; }
-
-        const flowCFM = currentSystem === 'SI' ? flow * 2.11888 : flow;
-        const AInch = currentSystem === 'SI' ? A / MM_PER_INCH : A;
-        const BInch = currentSystem === 'SI' ? B / MM_PER_INCH : B;
-        const r = calcOvalInches(AInch, BInch, flowCFM);
-
-        const areaM2 = r.areaSqFt * 0.0929;
-        const perimMm = r.p * MM_PER_INCH;
-        const deMm = r.de * MM_PER_INCH;
-        const velMS = r.velFPM * 0.00508;
-        const fricSI = r.fricIP / 0.0401865;
-
-        if (currentSystem === 'US') {
-            document.getElementById('res-oval-area').innerText = r.areaSqFt.toFixed(2) + ' ft²';
-            document.getElementById('res-oval-area-alt').innerText = `(${areaM2.toFixed(3)} m²)`;
-            document.getElementById('res-oval-perim').innerText = r.p.toFixed(1) + ' in';
-            document.getElementById('res-oval-perim-alt').innerText = `(${Math.round(perimMm)} mm)`;
-            document.getElementById('res-oval-de').innerText = r.de.toFixed(1) + ' in';
-            document.getElementById('res-oval-de-alt').innerText = `(${Math.round(deMm)} mm)`;
-            document.getElementById('res-oval-vel').innerText = Math.round(r.velFPM) + ' FPM';
-            document.getElementById('res-oval-vel-alt').innerText = `(${velMS.toFixed(1)} m/s)`;
-            document.getElementById('res-oval-fric').innerText = r.fricIP.toFixed(3) + ' in.wg/100ft';
-            document.getElementById('res-oval-fric-alt').innerText = `(${fricSI.toFixed(2)} Pa/m)`;
-        } else {
-            document.getElementById('res-oval-area').innerText = areaM2.toFixed(3) + ' m²';
-            document.getElementById('res-oval-area-alt').innerText = `(${r.areaSqFt.toFixed(2)} ft²)`;
-            document.getElementById('res-oval-perim').innerText = Math.round(perimMm) + ' mm';
-            document.getElementById('res-oval-perim-alt').innerText = `(${r.p.toFixed(1)} in)`;
-            document.getElementById('res-oval-de').innerText = Math.round(deMm) + ' mm';
-            document.getElementById('res-oval-de-alt').innerText = `(${r.de.toFixed(1)} in)`;
-            document.getElementById('res-oval-vel').innerText = velMS.toFixed(1) + ' m/s';
-            document.getElementById('res-oval-vel-alt').innerText = `(${Math.round(r.velFPM)} FPM)`;
-            document.getElementById('res-oval-fric').innerText = fricSI.toFixed(2) + ' Pa/m';
-            document.getElementById('res-oval-fric-alt').innerText = `(${r.fricIP.toFixed(3)} in.wg/100ft)`;
-        }
-        applyOvalManual();
-    }
-
-    function resetOvalForm() {
-        const cfg = unitConfigs[currentSystem];
-        document.getElementById('oval-flow').value = cfg.plenFlow;
-        document.getElementById('oval-major').value = cfg.ovalA;
-        document.getElementById('oval-minor').value = cfg.ovalB;
-        calculateOval();
-    }
-
-    function copyOvalResults(btn) {
-        const text = [
-            'Oval Duct: ' + document.getElementById('oval-major').value + 'x' + document.getElementById('oval-minor').value + (currentSystem === 'US' ? ' in' : ' mm'),
-            'Area: ' + document.getElementById('res-oval-area').innerText + ' / ' + document.getElementById('res-oval-area-alt').innerText,
-            'Perimeter: ' + document.getElementById('res-oval-perim').innerText + ' / ' + document.getElementById('res-oval-perim-alt').innerText,
-            'Equivalent Round: ' + document.getElementById('res-oval-de').innerText + ' / ' + document.getElementById('res-oval-de-alt').innerText,
-            'Velocity: ' + document.getElementById('res-oval-vel').innerText + ' / ' + document.getElementById('res-oval-vel-alt').innerText,
-            'Friction: ' + document.getElementById('res-oval-fric').innerText + ' / ' + document.getElementById('res-oval-fric-alt').innerText
-        ].join('\n');
-        copyText(text, btn);
-    }
-
-    function toggleAlert(w, h) {
-        const ratio = Math.max(w/h, h/w);
-        document.getElementById('aspect-alert').style.display = ratio > 4 ? 'block' : 'none';
-    }
-
-    window.onload = function() {
-        setUnitSystem('US');
-        toggleMethod();
-    };
-</script>
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('../sw.js').catch(() => {});
-        });
-    }
+  HvacSuite.initNav();
+  restore();
+  paintUnitLabels();
+  paintMethod();
+  renderBenchmarks();
+  renderOvalChips();
+  recomputeAll();
+})();
 </script>
 </body>
 </html>

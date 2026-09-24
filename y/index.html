@@ -1,504 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y-Piece Duct Design Analyzer</title>
-    <meta name="theme-color" content="#121824">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
-    <link rel="manifest" href="../manifest.webmanifest">
-    <link rel="apple-touch-icon" href="../icons/icon-192.png">
-    <style>
-        :root {
-            --bg-color: #121824;
-            --panel-bg: #1e2538;
-            --border-color: #2e374e;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-color: #3b82f6;
-            --success-color: #10b981;
-            --highlight-color: #f59e0b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        html { overflow-y: scroll; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
-        .wrapper { width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-        header { margin-bottom: 2rem; text-align: center; }
-        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
-        header p { color: var(--text-muted); font-size: 0.95rem; }
-        
-        .container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-        @media (max-width: 950px) { .container { grid-template-columns: 1fr; } }
-
-        .card { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .card h2 { font-size: 1.2rem; margin-bottom: 1.2rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        
-        .split-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 600px) { .split-card-grid { grid-template-columns: 1fr; } }
-
-        .form-group { margin-bottom: 1.2rem; }
-        
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
-        .input-wrapper { display: flex; position: relative; }
-        input[type="number"] {
-            width: 100%; padding: 0.65rem 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 6px; color: var(--text-main); font-size: 1rem; outline: none; transition: border 0.2s;
-            padding-right: 4.5rem !important;
-        }
-        input:focus { border-color: var(--accent-color); }
-        .unit { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
-
-        .toggle-group { display: flex; gap: 0.5rem; background: var(--bg-color); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-        .toggle-btn { flex: 1; border: none; background: none; color: var(--text-muted); padding: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-        .toggle-btn.active { background: var(--accent-color); color: #fff; }
-
-        .results-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
-        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; }
-        .result-val { font-size: 1.2rem; font-weight: 600; color: var(--success-color); text-align: right; }
-        .sec-val { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
-        
-        .highlight-item { border-left: 4px solid var(--accent-color); }
-        .highlight-item .result-val { color: var(--accent-color); font-size: 1.4rem; }
-
-        .svg-container { 
-            background-color: #141b29; 
-            border: 1px solid var(--border-color); 
-            border-radius: 8px; 
-            padding: 1.5rem 1rem; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            width: 100%;
-        }
-        .svg-container svg { width: 100%; height: auto; max-width: 600px; }
-        
-        .alert { font-size: 0.85rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem; border-left: 4px solid #f87171; display: none; }
-
-        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1rem; display: inline-block; font-size: 0.9rem; }
-        .back-link:hover { color: var(--text-main); }
-
-        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
-        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
-        .tool-nav a.active { color: #fff; background: var(--accent-color); }
-        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
-        .tool-nav .nav-brand:hover { background: none; }
-
-        .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-        .tool-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
-        .tool-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
-        .tool-btn.primary { color: var(--accent-color); border-color: var(--accent-color); }
-        .tool-btn.primary:hover { background: var(--accent-color); color: #fff; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Y-Piece Duct Splitter · HVAC Suite</title>
+<meta name="description" content="ANS throat sizing for Y-branch duct splits, with remaining-flow and velocity checks and a live schematic.">
+<meta name="theme-color" content="#0a1120">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+  .schematic-wrap { background: var(--inset); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1rem; }
+  .schematic-wrap svg { width: 100%; height: auto; display: block; }
+  .duct-line { fill: none; stroke: var(--cyan); stroke-width: 2; }
+  .accent-line { stroke: var(--copper); stroke-width: 2; }
+  .cap-line { stroke: var(--line-soft); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  .guide-line { stroke: var(--muted-2); stroke-width: 1; stroke-dasharray: 2 2; opacity: 0.7; }
+  .tee-label { fill: var(--muted-2); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .dim-label { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+  .flow-label-x { fill: var(--cyan); font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+  .flow-label-y { fill: var(--success); font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+  .flow-label-z { fill: var(--cyan); font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+  .throat-line { stroke: var(--copper); stroke-width: 1.5; }
+  .ans-badge-bg { fill: var(--panel-2); stroke: var(--copper); stroke-width: 1; }
+  .ans-badge-text { fill: var(--copper-strong); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .formula-box {
+    display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 0.86rem; color: var(--paper);
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem; margin-bottom: 1rem;
+  }
+  .formula-box .fb-label { color: var(--muted); }
+  .formula-box .fb-frac { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.3; font-size: 0.8rem; }
+  .formula-box .fb-frac .fb-rule { width: 100%; height: 1px; background: var(--muted); margin: 1px 0; }
+  .formula-box .fb-op { color: var(--muted); }
+  .formula-box .fb-result { color: var(--copper-strong); font-weight: 700; font-size: 1rem; }
+</style>
 </head>
 <body>
 
-<nav class="tool-nav">
-    <a href="../index.html" class="nav-brand">HVAC Suite</a>
-    <a href="../y/index.html" class="active">Y-Piece</a>
-    <a href="../duct/index.html">Duct Sizer</a>
-    <a href="../psy/index.html">Psychrometrics</a>
-    <a href="../chw/index.html">Chilled Water</a>
-    <a href="../conv/index.html">Converter</a>
+<nav class="tool-nav" aria-label="Suite navigation">
+  <a href="../index.html" class="nav-brand"><span class="mark" aria-hidden="true"></span>HVAC Suite</a>
+  <a href="../y/index.html" class="nav-link">Y-Piece</a>
+  <a href="../duct/index.html" class="nav-link">Duct Sizer</a>
+  <a href="../psy/index.html" class="nav-link">Psychrometrics</a>
+  <a href="../chw/index.html" class="nav-link">Chilled Water</a>
+  <a href="../conv/index.html" class="nav-link">Converter</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-status"><span class="dot"></span><span class="label">Ready offline</span></span>
 </nav>
 
-<div class="wrapper">
-    <header>
-        <h1>Y-Piece Duct Sizing Analyzer</h1>
-        <p>Proportional airflow geometric split calculation matching standard ventilation cross-sections.</p>
-    </header>
+<div class="shell">
 
-    <div class="toggle-group">
-        <button class="toggle-btn" id="unit-si" onclick="setUnitSystem('SI')">SI Units (Metric)</button>
-        <button class="toggle-btn active" id="unit-ip" onclick="setUnitSystem('IP')">IP Units (US-Imperial)</button>
+  <div class="page-head">
+    <div class="titles">
+      <span class="kicker">Branch takeoff sizing</span>
+      <h1>Y-Piece Duct Splitter</h1>
+      <p>Proportional ANS throat sizing for a Y-branch split, with remaining-flow and velocity checks against a live schematic.</p>
+    </div>
+    <div class="segmented" id="unitToggle" role="group" aria-label="Unit system">
+      <button type="button" data-unit="ip" class="active">IP · in / CFM</button>
+      <button type="button" data-unit="si">SI · mm / L·s⁻¹</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="panel">
+      <div class="panel-title">
+        <div>
+          <h2>Duct &amp; airflow inputs</h2>
+          <div class="sub">Main run splits into the S-1 branch and a remaining straight path</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fX">Main duct airflow (X) <span class="hint" id="uFlow1">CFM</span></label>
+        <input type="number" id="fX" inputmode="decimal" step="any" min="0">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="fA">Main width (A) <span class="hint" id="uLen1">in</span></label>
+          <input type="number" id="fA" inputmode="decimal" step="any" min="0">
+        </div>
+        <div class="field">
+          <label for="fB">Main height (B) <span class="hint" id="uLen2">in</span></label>
+          <input type="number" id="fB" inputmode="decimal" step="any" min="0">
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:0.3rem;">
+        <label for="fZ">Branch S-1 airflow (Z) <span class="hint" id="uFlow2">CFM</span></label>
+        <input type="number" id="fZ" inputmode="decimal" step="any" min="0">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="fE">Branch width (E) <span class="hint" id="uLen3">in</span></label>
+          <input type="number" id="fE" inputmode="decimal" step="any" min="0">
+        </div>
+        <div class="field">
+          <label for="fF">Branch height (F) <span class="hint" id="uLen4">in</span></label>
+          <input type="number" id="fF" inputmode="decimal" step="any" min="0">
+        </div>
+      </div>
+
+      <div id="warnInvalid" class="alert alert-danger" hidden></div>
+      <div id="warnZero" class="alert alert-danger" hidden></div>
+
+      <div class="btn-row">
+        <button class="btn" id="btnReset" type="button"><span class="ico" data-icon="reset"></span>Reset to defaults</button>
+        <button class="btn" id="btnShare" type="button"><span class="ico" data-icon="share"></span>Share</button>
+      </div>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <h2>Duct & Airflow Inputs</h2>
-            
-            <div class="form-group" style="border-left: 3px solid var(--accent-color); padding-left: 8px; margin-bottom: 1.5rem;">
-                <label for="mainCfm">Main Duct Airflow (X)</label>
-                <div class="input-wrapper">
-                    <input type="number" id="mainCfm" value="3400" step="50" oninput="calculateYPiece()">
-                    <span class="unit" id="unit-flow-1">CFM</span>
-                </div>
-            </div>
-
-            <div class="split-card-grid">
-                <div class="form-group">
-                    <label for="mainWidth">Main Duct Width (A)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="mainWidth" value="24" step="1" oninput="calculateYPiece()">
-                        <span class="unit" id="unit-dim-1">in</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="mainHeight">Main Duct Height (B)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="mainHeight" value="8" step="1" oninput="calculateYPiece()">
-                        <span class="unit" id="unit-dim-2">in</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group" style="border-left: 3px solid var(--highlight-color); padding-left: 8px; margin-top: 1.5rem;">
-                <label for="branchCfm">Branch S-1 Airflow (Z)</label>
-                <div class="input-wrapper">
-                    <input type="number" id="branchCfm" value="1400" step="50" oninput="calculateYPiece()">
-                    <span class="unit" id="unit-flow-2">CFM</span>
-                </div>
-            </div>
-
-            <div class="split-card-grid">
-                <div class="form-group">
-                    <label for="branchWidth">Branch S-1 Duct Width (E)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="branchWidth" value="20" step="1" oninput="calculateYPiece()">
-                        <span class="unit" id="unit-dim-3">in</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="branchHeight">Branch S-1 Duct Height (F)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="branchHeight" value="8" step="1" oninput="calculateYPiece()">
-                        <span class="unit" id="unit-dim-4">in</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="flow-alert" class="alert">Warning: Branch airflow (Z) cannot exceed or equal total main airflow (X).</div>
-            <div id="dim-alert" class="alert">Warning: Duct width, height and airflow must be greater than zero.</div>
-            <div id="branch-alert" class="alert">Warning: ANS throat size exceeds the branch S-1 duct width (E). Enlarge the branch duct or re-check the split ratio.</div>
-            <div class="btn-row">
-                <button class="tool-btn" onclick="resetForm()">↺ Reset to Defaults</button>
-            </div>
+    <div class="readout-panel">
+      <div class="panel-title">
+        <div>
+          <h2>Calculated proportions</h2>
+          <div class="sub">Reference layout, drawn to the ratios you entered</div>
         </div>
+      </div>
 
-        <div class="card">
-            <h2>Calculated Proportions & Reference Layout</h2>
-            
-            <div class="results-list">
-                <div class="result-item highlight-item">
-                    <div>
-                        <label style="margin:0; font-weight:600; color: var(--text-main);">Y-Piece Split Size (ANS)</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Opening throat width split dimension</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-y-size">-</span>
-                        <span class="sec-val" id="res-y-size-alt"></span>
-                    </div>
-                </div>
+      <div class="schematic-wrap">
+        <svg viewBox="0 -5 600 360" id="svgSchematic" role="img" aria-label="Y-piece schematic diagram"></svg>
+      </div>
 
-                <div class="split-card-grid">
-                    <div class="result-item">
-                        <div>
-                            <label style="margin:0;">Remaining Flow (Y)</label>
-                            <span style="font-size:0.8rem; color:var(--text-muted);">Straight branch path flow</span>
-                        </div>
-                        <div class="result-val" style="color: var(--text-main); font-size: 1.05rem;">
-                            <span id="res-remaining-flow">-</span>
-                        </div>
-                    </div>
+      <div class="formula-box" id="formulaBox">
+        <span class="fb-label">Y-piece size =</span>
+        <span class="fb-frac" id="fbFrac"></span>
+        <span class="fb-op">×</span>
+        <span id="fbA">—</span>
+        <span class="fb-op">=</span>
+        <span class="fb-result" id="fbResult">—</span>
+      </div>
 
-                    <div class="result-item">
-                        <div>
-                            <label style="margin:0;">Main Velocity</label>
-                            <span style="font-size:0.8rem; color:var(--text-muted);">Face velocity rate</span>
-                        </div>
-                        <div class="result-val" style="color: var(--text-main); font-size: 1.05rem;">
-                            <span id="res-velocity">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Branch S-1 Velocity</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);" id="res-branch-sub">Through E × F duct</span>
-                    </div>
-                    <div class="result-val" style="color: var(--text-main); font-size: 1.05rem;">
-                        <span id="res-branch-velocity">-</span>
-                    </div>
-                </div>
-            </div>
-
-            <label style="margin-bottom: 0.5rem; font-weight: 600;">Vector Schematic Layout Mapping:</label>
-            <div class="svg-container">
-                <svg viewBox="0 0 600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="30" y1="260" x2="240" y2="260" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="30" y1="340" x2="240" y2="340" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="30" y1="260" x2="30" y2="340" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="4 4"/>
-                    
-                    <line x1="240" y1="290" x2="270" y2="290" stroke="#3b82f6" stroke-width="2"/>
-                    
-                    <line x1="240" y1="260" x2="240" y2="40" stroke="#f472b6" stroke-width="2"/>
-                    <path d="M 240 290 A 30 30 0 0 0 270 260" stroke="#f472b6" stroke-width="2" fill="none"/>
-                    <line x1="270" y1="260" x2="270" y2="200" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="270" y1="200" x2="290" y2="150" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="290" y1="150" x2="290" y2="40" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="240" y1="40" x2="290" y2="40" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="4 4"/>
-                    
-                    <line x1="240" y1="200" x2="270" y2="200" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
-                    <line x1="240" y1="150" x2="290" y2="150" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
-                    <text x="252" y="180" fill="#9ca3af" font-size="12" font-weight="bold">T</text>
-
-                    <line x1="240" y1="340" x2="560" y2="340" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="270" y1="290" x2="330" y2="275" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="330" y1="275" x2="560" y2="275" stroke="#f472b6" stroke-width="2"/>
-                    <line x1="560" y1="340" x2="560" y2="275" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="4 4"/>
-                    
-                    <line x1="270" y1="290" x2="270" y2="340" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
-                    <line x1="330" y1="275" x2="330" y2="340" stroke="#4b5563" stroke-width="1" stroke-dasharray="2 2"/>
-                    <text x="295" y="322" fill="#9ca3af" font-size="12" font-weight="bold">T</text>
-
-                    <line x1="234" y1="262" x2="234" y2="288" stroke="#f59e0b" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-
-                    <text x="40" y="300" fill="#60a5fa" font-size="14" font-weight="bold" id="svg-x">X: -</text>
-                    <text x="40" y="318" fill="#9ca3af" font-size="12" id="svg-ab">A Duct W x B Duct H</text>
-                    
-                    <text x="310" y="100" fill="#60a5fa" font-size="14" font-weight="bold" id="svg-z" transform="rotate(-90 310 100)">Z: -</text>
-                    <text x="328" y="118" fill="#9ca3af" font-size="12" id="svg-ef" transform="rotate(-90 328 118)">E x F Duct</text>
-                    
-                    <text x="350" y="300" fill="#34d399" font-size="14" font-weight="bold" id="svg-y">Y: -</text>
-                    <text x="350" y="318" fill="#9ca3af" font-size="12" id="svg-cd">C x D Duct</text>
-                    
-                    <rect x="135" y="263" width="90" height="24" rx="4" fill="#1e2538" stroke="#f59e0b" stroke-width="1"/>
-                    <text x="143" y="279" fill="#fbbf24" font-size="12" font-weight="bold" id="svg-ans">ANS: -</text>
-
-                    <rect x="40" y="410" width="520" height="80" rx="8" fill="#1e2538" stroke="#2e374e" stroke-width="1"/>
-                    <text x="75" y="455" fill="#9ca3af" font-size="14" font-weight="bold">Y-PIECE SIZE =</text>
-                    
-                    <line x1="210" y1="448" x2="310" y2="448" stroke="#f3f4f6" stroke-width="2"/>
-                    <text x="260" y="440" fill="#60a5fa" font-size="13" font-weight="bold" id="formula-z" text-anchor="middle">Z CFM</text>
-                    <text x="260" y="466" fill="#60a5fa" font-size="13" font-weight="bold" id="formula-x" text-anchor="middle">X CFM</text>
-                    
-                    <text x="330" y="455" fill="#9ca3af" font-size="15" font-weight="bold">X</text>
-                    <text x="360" y="455" fill="#9ca3af" font-size="14" font-weight="bold" id="formula-a">A DUCT W</text>
-                    <text x="440" y="455" fill="#fbbf24" font-size="15" font-weight="bold" id="formula-ans">= ANS</text>
-
-                    <defs>
-                        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#f59e0b"/>
-                        </marker>
-                    </defs>
-                </svg>
-            </div>
-            <div class="btn-row">
-                <button class="tool-btn primary" onclick="copyResults(this)">Copy Results</button>
-            </div>
+      <div class="readout-grid cols-2">
+        <div class="readout featured">
+          <div class="r-label">Y-piece split size (ANS)</div>
+          <div class="r-value" id="rANS">—</div>
+          <div class="r-alt">Throat width at the branch takeoff</div>
         </div>
+        <div class="readout">
+          <div class="r-label">Remaining flow (Y)</div>
+          <div class="r-value" id="rY">—</div>
+          <div class="r-alt">Straight-through path, X − Z</div>
+        </div>
+        <div class="readout">
+          <div class="r-label">Main velocity</div>
+          <div class="r-value" id="rVmain">—</div>
+          <div class="r-alt">Face velocity through A × B</div>
+        </div>
+        <div class="readout">
+          <div class="r-label">Branch S-1 velocity</div>
+          <div class="r-value" id="rVbranch">—</div>
+          <div class="r-alt">Face velocity through E × F</div>
+        </div>
+        <div class="readout" style="grid-column: 1 / -1;">
+          <div class="r-label">Remaining-path velocity</div>
+          <div class="r-value" id="rVthrough">—</div>
+          <div class="r-alt">Through A × B, carrying Y downstream of the split</div>
+        </div>
+      </div>
+
+      <div id="warnAns" class="alert alert-danger" hidden></div>
+      <div id="warnVel" class="alert alert-amber" hidden></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnCopy" type="button"><span class="ico" data-icon="copy"></span>Copy results</button>
+      </div>
     </div>
+  </div>
+
+  <footer class="suite-footer">
+    <span>ANS = (Z ⁄ X) × A, rounded to 0.5 in (IP) or 1 mm (SI) · Reference: ASHRAE Fundamentals</span>
+    <span><a href="../index.html">← Back to suite</a></span>
+  </footer>
 </div>
 
+<script src="../assets/app.js"></script>
 <script>
-    let currentSystem = 'IP';
+(function () {
+  const U = HvacSuite.UNITS;
+  const $ = (id) => document.getElementById(id);
+  const fields = ['X', 'A', 'B', 'Z', 'E', 'F'];
+  const els = {};
+  fields.forEach((k) => (els[k] = $('f' + k)));
 
-    const systemConfigs = {
-        SI: { mainFlow: 5777, width: 600, height: 200, branchFlow: 2379, branchW: 500, branchH: 200, lblFlow: 'm³/h', lblDim: 'mm' },
-        IP: { mainFlow: 3400, width: 24, height: 8, branchFlow: 1400, branchW: 20, branchH: 8, lblFlow: 'CFM', lblDim: 'in' }
-    };
+  const DEFAULTS = { unit: 'ip', X: 2000, A: 24, B: 12, Z: 700, E: 12, F: 10 };
 
-    function setUnitSystem(system) {
-        currentSystem = system;
-        document.getElementById('unit-si').classList.toggle('active', system === 'SI');
-        document.getElementById('unit-ip').classList.toggle('active', system === 'IP');
+  let unit = DEFAULTS.unit;
 
-        const config = systemConfigs[system];
-        
-        document.getElementById('unit-flow-1').innerText = config.lblFlow;
-        document.getElementById('unit-flow-2').innerText = config.lblFlow;
-        document.getElementById('unit-dim-1').innerText = config.lblDim;
-        document.getElementById('unit-dim-2').innerText = config.lblDim;
-        document.getElementById('unit-dim-3').innerText = config.lblDim;
-        document.getElementById('unit-dim-4').innerText = config.lblDim;
+  function lenLabel() { return unit === 'ip' ? 'in' : 'mm'; }
+  function altLenLabel() { return unit === 'ip' ? 'mm' : 'in'; }
+  function flowLabel() { return unit === 'ip' ? 'CFM' : 'L·s⁻¹'; }
+  function velLabel() { return unit === 'ip' ? 'FPM' : 'm·s⁻¹'; }
 
-        document.getElementById('mainCfm').value = Math.round(config.mainFlow);
-        document.getElementById('mainWidth').value = Math.round(config.width);
-        document.getElementById('mainHeight').value = Math.round(config.height);
-        document.getElementById('branchCfm').value = Math.round(config.branchFlow);
-        document.getElementById('branchWidth').value = Math.round(config.branchW);
-        document.getElementById('branchHeight').value = Math.round(config.branchH);
+  function convertLen(v, from, to) {
+    if (from === to) return v;
+    return from === 'ip' ? v * U.MM_PER_IN : v / U.MM_PER_IN;
+  }
+  function convertFlow(v, from, to) {
+    if (from === to) return v;
+    return from === 'ip' ? v / U.CFM_PER_LS : v * U.CFM_PER_LS;
+  }
 
-        calculateYPiece();
+  function paintUnitLabels() {
+    ['uFlow1', 'uFlow2'].forEach((id) => ($(id).textContent = flowLabel()));
+    ['uLen1', 'uLen2', 'uLen3', 'uLen4'].forEach((id) => ($(id).textContent = lenLabel()));
+    document.querySelectorAll('#unitToggle button').forEach((b) => b.classList.toggle('active', b.dataset.unit === unit));
+  }
+
+  function setUnit(newUnit, convertValues) {
+    if (newUnit === unit) return;
+    if (convertValues) {
+      ['X', 'Z'].forEach((k) => {
+        const v = parseFloat(els[k].value);
+        if (isFinite(v)) els[k].value = round2(convertFlow(v, unit, newUnit));
+      });
+      ['A', 'B', 'E', 'F'].forEach((k) => {
+        const v = parseFloat(els[k].value);
+        if (isFinite(v)) els[k].value = round2(convertLen(v, unit, newUnit));
+      });
+    }
+    unit = newUnit;
+    paintUnitLabels();
+    persist();
+    compute();
+  }
+
+  function round2(v) { return Math.round(v * 1e6) / 1e6; }
+
+  function loadDefaults() {
+    unit = DEFAULTS.unit;
+    fields.forEach((k) => (els[k].value = DEFAULTS[k]));
+    paintUnitLabels();
+  }
+
+  function restore() {
+    const fromUrl = HvacSuite.queryToState();
+    const fromStore = HvacSuite.store.get('inputs:y', {});
+    const state = Object.assign({}, DEFAULTS, fromStore, fromUrl);
+    unit = state.unit === 'si' ? 'si' : 'ip';
+    fields.forEach((k) => (els[k].value = state[k]));
+    paintUnitLabels();
+  }
+
+  function persist() {
+    const state = { unit };
+    fields.forEach((k) => (state[k] = els[k].value));
+    HvacSuite.store.set('inputs:y', state);
+  }
+
+  function currentState() {
+    const state = { unit };
+    fields.forEach((k) => (state[k] = els[k].value));
+    return state;
+  }
+
+  /* ---- schematic ---- */
+  const NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach((k) => el.setAttribute(k, attrs[k]));
+    return el;
+  }
+  function drawSchematic(x, a, b, z, e, f, y, ans, ansAlt) {
+    const svg = $('svgSchematic');
+    svg.innerHTML = '';
+    const L = (attrs) => svg.appendChild(svgEl('line', attrs));
+    const T = (attrs, text) => { const el = svgEl('text', attrs); el.textContent = text; svg.appendChild(el); };
+
+    // Static layout, ported 1:1 from the original schematic's coordinates —
+    // only the text content is data-driven, exactly as the original did it.
+
+    // left main duct (X): top wall, bottom wall, dashed left cap
+    L({ x1: 30, y1: 260, x2: 240, y2: 260, class: 'duct-line' });
+    L({ x1: 30, y1: 340, x2: 240, y2: 340, class: 'duct-line' });
+    L({ x1: 30, y1: 260, x2: 30, y2: 340, class: 'cap-line' });
+
+    // accent connector at the main duct centerline, marking the takeoff origin
+    L({ x1: 240, y1: 290, x2: 270, y2: 290, class: 'accent-line' });
+
+    // branch (Z): left wall straight up; right wall arcs off the centerline, then a stepped riser
+    L({ x1: 240, y1: 260, x2: 240, y2: 40, class: 'duct-line' });
+    svg.appendChild(svgEl('path', { d: 'M 240 290 A 30 30 0 0 0 270 260', class: 'duct-line' }));
+    L({ x1: 270, y1: 260, x2: 270, y2: 200, class: 'duct-line' });
+    L({ x1: 270, y1: 200, x2: 290, y2: 150, class: 'duct-line' });
+    L({ x1: 290, y1: 150, x2: 290, y2: 40, class: 'duct-line' });
+    L({ x1: 240, y1: 40, x2: 290, y2: 40, class: 'cap-line' });
+
+    // construction guides + tee marker on the branch
+    L({ x1: 240, y1: 200, x2: 270, y2: 200, class: 'guide-line' });
+    L({ x1: 240, y1: 150, x2: 290, y2: 150, class: 'guide-line' });
+    T({ x: 252, y: 180, class: 'tee-label' }, 'T');
+
+    // right main duct (Y): bottom wall (continuous), stepped-up top wall, dashed right cap
+    L({ x1: 240, y1: 340, x2: 560, y2: 340, class: 'duct-line' });
+    L({ x1: 270, y1: 290, x2: 330, y2: 275, class: 'duct-line' });
+    L({ x1: 330, y1: 275, x2: 560, y2: 275, class: 'duct-line' });
+    L({ x1: 560, y1: 340, x2: 560, y2: 275, class: 'cap-line' });
+    L({ x1: 270, y1: 290, x2: 270, y2: 340, class: 'guide-line' });
+    L({ x1: 330, y1: 275, x2: 330, y2: 340, class: 'guide-line' });
+    T({ x: 295, y: 322, class: 'tee-label' }, 'T');
+
+    // ANS throat callout
+    const defs = svgEl('defs', {});
+    defs.innerHTML = '<marker id="ansArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="var(--copper)"/></marker>';
+    svg.appendChild(defs);
+    L({ x1: 234, y1: 262, x2: 234, y2: 288, class: 'throat-line', 'marker-start': 'url(#ansArrow)', 'marker-end': 'url(#ansArrow)' });
+    // The box is measured from the rendered text rather than estimated from
+    // character count, so it stays correct for any label length, any font
+    // (including the offline fallback stack) and both unit systems.
+    const ansLabel = `ANS = ${fmtNum(ans)} ${lenLabel()} / ${fmtNum(ansAlt)} ${altLenLabel()}`;
+    const label = svgEl('text', { x: 0, y: 279, class: 'ans-badge-text', 'text-anchor': 'middle' });
+    label.textContent = ansLabel;
+    svg.appendChild(label);
+    const PAD_X = 12;
+    const badgeW = Math.max(96, label.getComputedTextLength() + PAD_X * 2);
+    // right edge anchors to the duct wall; clamp so long SI labels never
+    // run into the throat dimension arrow at x = 234
+    const badgeX = Math.max(8, 220 - badgeW);
+    const badge = svgEl('rect', { x: badgeX, y: 262, width: badgeW, height: 26, rx: 5, class: 'ans-badge-bg' });
+    svg.insertBefore(badge, label);
+    label.setAttribute('x', badgeX + badgeW / 2);
+
+    // labels
+    T({ x: 40, y: 300, class: 'flow-label-x' }, `X = ${fmtNum(x)} ${flowLabel()}`);
+    T({ x: 40, y: 318, class: 'dim-label' }, `${fmtNum(a)} × ${fmtNum(b)} ${lenLabel()} main`);
+
+    T({ x: 350, y: 300, class: 'flow-label-y' }, `Y = ${fmtNum(y)} ${flowLabel()}`);
+    T({ x: 350, y: 318, class: 'dim-label' }, `continues in A × B`);
+
+    T({ x: 310, y: 100, class: 'flow-label-z', transform: 'rotate(-90 310 100)' }, `Z = ${fmtNum(z)} ${flowLabel()}`);
+    T({ x: 328, y: 118, class: 'dim-label', transform: 'rotate(-90 328 118)' }, `${fmtNum(e)} × ${fmtNum(f)} ${lenLabel()} branch`);
+  }
+  function fmtNum(v) { return isFinite(v) ? (Math.round(v * 100) / 100).toString() : '—'; }
+
+  function renderFormula(x, a, z, ans, ansAlt) {
+    $('fbFrac').innerHTML = `<span>${fmtNum(z)} ${flowLabel()}</span><span class="fb-rule"></span><span>${fmtNum(x)} ${flowLabel()}</span>`;
+    $('fbA').textContent = `${fmtNum(a)} ${lenLabel()}`;
+    $('fbResult').innerHTML = `${fmtNum(ans)} ${lenLabel()}<span class="alt-unit"> / ${fmtNum(ansAlt)} ${altLenLabel()}</span>`;
+  }
+
+  /* ---- calculation ----------------------------------------------------
+     Formulas are evaluated once in canonical IP units (inches, CFM) —
+     exactly as documented — then presented in the active unit system.
+     Duct/branch *dimensions* convert through the suite's nominal
+     1 in = 25 mm sizing convention; *airflow and velocity* convert
+     through the exact physical factors. Keeping those two conversions
+     separate (rather than deriving a single "native SI" formula) is
+     what keeps a toggle between IP and SI reproducing the same
+     underlying case instead of drifting by the ~1.6% gap between 25 mm
+     and the true 25.4 mm per inch. */
+  function compute() {
+    const raw = {};
+    fields.forEach((k) => (raw[k] = parseFloat(els[k].value)));
+    const allEntered = fields.every((k) => els[k].value !== '' && isFinite(raw[k]));
+
+    const warnInvalid = $('warnInvalid'), warnZero = $('warnZero'), warnAns = $('warnAns'), warnVel = $('warnVel');
+    [warnInvalid, warnZero, warnAns, warnVel].forEach((el) => (el.hidden = true));
+
+    if (!allEntered) { setReadouts(null); return; }
+    if (fields.some((k) => raw[k] <= 0)) {
+      warnZero.hidden = false;
+      warnZero.innerHTML = alertMarkup('Duct width, height and airflow must be greater than zero.');
+      setReadouts(null);
+      return;
+    }
+    if (raw.Z >= raw.X) {
+      warnInvalid.hidden = false;
+      warnInvalid.innerHTML = alertMarkup('Branch airflow (Z) cannot exceed or equal total main airflow (X).');
+      setReadouts(null);
+      return;
     }
 
-    function calculateYPiece() {
-        let flowInput = parseFloat(document.getElementById('mainCfm').value);
-        let widthInput = parseFloat(document.getElementById('mainWidth').value);
-        let heightInput = parseFloat(document.getElementById('mainHeight').value);
-        let branchInput = parseFloat(document.getElementById('branchCfm').value);
+    // canonical IP values
+    const ip = {};
+    ['A', 'B', 'E', 'F'].forEach((k) => (ip[k] = unit === 'ip' ? raw[k] : raw[k] / U.MM_PER_IN));
+    ['X', 'Z'].forEach((k) => (ip[k] = unit === 'ip' ? raw[k] : raw[k] * U.CFM_PER_LS));
 
-        const flowAlert = document.getElementById('flow-alert');
-        const dimAlert = document.getElementById('dim-alert');
+    const yIp = ip.X - ip.Z;
+    const ansRawIn = (ip.Z / ip.X) * ip.A;
+    const vMainFpm = ip.X / ((ip.A * ip.B) / 144);
+    const vBranchFpm = ip.Z / ((ip.E * ip.F) / 144);
+    const vThroughFpm = yIp / ((ip.A * ip.B) / 144);
 
-        if (isNaN(flowInput) || isNaN(widthInput) || isNaN(heightInput) || isNaN(branchInput) || flowInput <= 0 || widthInput <= 0 || heightInput <= 0) {
-            dimAlert.style.display = 'block';
-            clearOutputs();
-            return;
-        }
-        dimAlert.style.display = 'none';
-
-        if (branchInput >= flowInput) {
-            flowAlert.style.display = 'block';
-            clearOutputs();
-            return;
-        } else {
-            flowAlert.style.display = 'none';
-        }
-
-        let flowCFM = currentSystem === 'SI' ? flowInput / 1.699011 : flowInput;
-        let widthInches = currentSystem === 'SI' ? widthInput / 25 : widthInput;
-        let heightInches = currentSystem === 'SI' ? heightInput / 25 : heightInput;
-        let branchCFM = currentSystem === 'SI' ? branchInput / 1.699011 : branchInput;
-
-        let rawAnsInches = (branchCFM / flowCFM) * widthInches;
-        let rawAnsMm = rawAnsInches * 25;
-
-        let finalInches, finalMm;
-
-        if (currentSystem === 'SI') {
-            finalMm = Math.round(rawAnsMm);
-            finalInches = Math.round(finalMm / 25);
-        } else {
-            finalInches = Math.round(rawAnsInches * 2) / 2;
-            finalMm = finalInches * 25; 
-        }
-
-        let remainingFlow = flowInput - branchInput;
-        let mainVelocityFpm = flowCFM / ((widthInches * heightInches) / 144);
-        let mainVelocityMs = mainVelocityFpm * 0.00508;
-
-        let branchW = parseFloat(document.getElementById('branchWidth').value);
-        let branchH = parseFloat(document.getElementById('branchHeight').value);
-        const branchAlert = document.getElementById('branch-alert');
-        if (isNaN(branchW) || isNaN(branchH) || branchW <= 0 || branchH <= 0) {
-            dimAlert.style.display = 'block';
-            clearOutputs();
-            return;
-        }
-        let branchWInch = currentSystem === 'SI' ? branchW / 25 : branchW;
-        let branchHInch = currentSystem === 'SI' ? branchH / 25 : branchH;
-        let branchVelFpm = branchCFM / ((branchWInch * branchHInch) / 144);
-        let branchVelMs = branchVelFpm * 0.00508;
-
-        let fLabel = currentSystem === 'SI' ? ' m³/h' : ' CFM';
-        let dLabel = currentSystem === 'SI' ? ' mm' : ' in';
-        let ansFormat = currentSystem === 'SI' ? finalMm : finalInches;
-
-        if (currentSystem === 'SI') {
-            document.getElementById('res-y-size').innerText = finalMm + ' mm';
-            document.getElementById('res-y-size-alt').innerText = `(${finalInches} in)`;
-            document.getElementById('res-remaining-flow').innerText = fmt(remainingFlow) + ' m³/h';
-            document.getElementById('res-velocity').innerText = Math.round(mainVelocityMs) + ' m/s';
-            document.getElementById('res-branch-velocity').innerText = Math.round(branchVelMs) + ' m/s';
-        } else {
-            document.getElementById('res-y-size').innerText = finalInches + ' in';
-            document.getElementById('res-y-size-alt').innerText = `(${finalMm} mm)`;
-            document.getElementById('res-remaining-flow').innerText = fmt(remainingFlow) + ' CFM';
-            document.getElementById('res-velocity').innerText = fmt(mainVelocityFpm) + ' FPM';
-            document.getElementById('res-branch-velocity').innerText = fmt(branchVelFpm) + ' FPM';
-        }
-        document.getElementById('res-branch-sub').innerText = `Through E × F: ${Math.round(branchW)} × ${Math.round(branchH)} ${currentSystem === 'SI' ? 'mm' : 'in'}`;
-
-        const ansInches = currentSystem === 'SI' ? finalMm / 25 : finalInches;
-        branchAlert.style.display = ansInches > branchWInch ? 'block' : 'none';
-
-        // Apply dynamic text directly to the SVG workspace
-        document.getElementById('svg-x').textContent = 'X: ' + fmt(flowInput) + fLabel;
-        document.getElementById('svg-ab').textContent = Math.round(widthInput) + 'x' + Math.round(heightInput) + dLabel + ' Main';
-        document.getElementById('svg-z').textContent = 'Z: ' + fmt(branchInput) + fLabel;
-        document.getElementById('svg-y').textContent = 'Y: ' + fmt(remainingFlow) + fLabel;
-        
-        let ansString = currentSystem === 'SI' ? finalMm + ' mm' : finalInches + ' in';
-        document.getElementById('svg-ans').textContent = 'ANS: ' + ansString;
-
-        // Apply text to bottom calculation formula card
-        document.getElementById('formula-z').textContent = fmt(branchInput) + fLabel;
-        document.getElementById('formula-x').textContent = fmt(flowInput) + fLabel;
-        document.getElementById('formula-a').textContent = Math.round(widthInput) + dLabel;
-        document.getElementById('formula-ans').textContent = '= ' + ansString;
+    let ans, ansAlt, y, vMain, vBranch, vThrough;
+    // Derive the alternate unit FROM the rounded primary (as the original did)
+    // so the pair always honours the 25 mm/in rule. Rounding both independently
+    // would let 8.5 in pair with 210 mm, which is not 8.5 x 25.
+    if (unit === 'ip') {
+      ans = HvacSuite.roundTo(ansRawIn, 0.5);
+      ansAlt = ans * U.MM_PER_IN;
+      y = yIp; vMain = vMainFpm; vBranch = vBranchFpm; vThrough = vThroughFpm;
+    } else {
+      ans = HvacSuite.roundTo(ansRawIn * U.MM_PER_IN, 1);
+      ansAlt = HvacSuite.roundTo(ans / U.MM_PER_IN, 0.5);
+      y = yIp / U.CFM_PER_LS;
+      vMain = vMainFpm / U.FPM_PER_MS;
+      vBranch = vBranchFpm / U.FPM_PER_MS;
+      vThrough = vThroughFpm / U.FPM_PER_MS;
     }
 
-    function clearOutputs() {
-        document.getElementById('res-y-size').innerText = '-';
-        document.getElementById('res-y-size-alt').innerText = '';
-        document.getElementById('res-remaining-flow').innerText = '-';
-        document.getElementById('res-velocity').innerText = '-';
-        document.getElementById('res-branch-velocity').innerText = '-';
-        document.getElementById('res-branch-sub').innerText = 'Through E × F duct';
-        document.getElementById('branch-alert').style.display = 'none';
-        
-        document.getElementById('svg-x').textContent = 'X: -';
-        document.getElementById('svg-ab').textContent = 'A Duct W x B Duct H';
-        document.getElementById('svg-z').textContent = 'Z: -';
-        document.getElementById('svg-y').textContent = 'Y: -';
-        document.getElementById('svg-ans').textContent = 'ANS: -';
+    setReadouts({ y, ans, ansAlt, vMain, vBranch, vThrough });
+    drawSchematic(raw.X, raw.A, raw.B, raw.Z, raw.E, raw.F, y, ans, ansAlt);
+    renderFormula(raw.X, raw.A, raw.Z, ans, ansAlt);
 
-        document.getElementById('formula-z').textContent = 'Z CFM';
-        document.getElementById('formula-x').textContent = 'X CFM';
-        document.getElementById('formula-a').textContent = 'A DUCT W';
-        document.getElementById('formula-ans').textContent = '= ANS';
+    if (ans > raw.E) {
+      warnAns.hidden = false;
+      warnAns.innerHTML = alertMarkup('ANS throat size exceeds the branch S-1 duct width (E). Enlarge the branch duct or re-check the split ratio.');
     }
-
-    function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
-
-    function copyResults(btn) {
-        const text = [
-            'Y-Piece Split Size (ANS): ' + document.getElementById('res-y-size').innerText,
-            'Remaining Flow (Y): ' + document.getElementById('res-remaining-flow').innerText,
-            'Main Velocity: ' + document.getElementById('res-velocity').innerText,
-            'Branch S-1 Velocity: ' + document.getElementById('res-branch-velocity').innerText
-        ].join('\n');
-        safeCopy(text, btn);
+    if (vBranchFpm > 2500 || vMainFpm > 2500) {
+      warnVel.hidden = false;
+      warnVel.innerHTML = alertMarkup(`Velocity above 2500 FPM (${fmtNum(2500 / U.FPM_PER_MS)} m·s⁻¹) — check against your noise-criteria target for this application.`);
     }
+    persist();
+  }
 
-    function safeCopy(text, btn) {
-        const done = () => {
-            const old = btn.innerText;
-            btn.innerText = '✓ Copied';
-            setTimeout(() => { btn.innerText = old; }, 1500);
-        };
-        const fallback = () => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch (e) {}
-            document.body.removeChild(ta);
-            done();
-        };
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, fallback);
-        } else { fallback(); }
+  function alertMarkup(text) {
+    return HvacSuite.ICONS.warn + '<span>' + text + '</span>';
+  }
+
+  function setReadouts(r) {
+    const lenU = lenLabel(), velU = velLabel();
+    if (!r) {
+      $('rANS').innerHTML = '—';
+      $('rY').innerHTML = '—';
+      $('rVmain').innerHTML = '—';
+      $('rVbranch').innerHTML = '—';
+      $('rVthrough').innerHTML = '—';
+      $('svgSchematic').innerHTML = '';
+      $('fbFrac').innerHTML = '<span>—</span>';
+      $('fbA').textContent = '—';
+      $('fbResult').textContent = '—';
+      return;
     }
+    $('rANS').innerHTML = `${fmtNum(r.ans)} <span class="unit">${lenU}</span> <span class="alt-unit">(${fmtNum(r.ansAlt)} ${altLenLabel()})</span>`;
+    $('rY').innerHTML = `${fmtNum(r.y)} <span class="unit">${flowLabel()}</span>`;
+    $('rVmain').innerHTML = `${fmtNum(r.vMain)} <span class="unit">${velU}</span>`;
+    $('rVbranch').innerHTML = `${fmtNum(r.vBranch)} <span class="unit">${velU}</span>`;
+    $('rVthrough').innerHTML = `${fmtNum(r.vThrough)} <span class="unit">${velU}</span>`;
+  }
 
-    function resetForm() {
-        const config = systemConfigs[currentSystem];
-        document.getElementById('mainCfm').value = Math.round(config.mainFlow);
-        document.getElementById('mainWidth').value = Math.round(config.width);
-        document.getElementById('mainHeight').value = Math.round(config.height);
-        document.getElementById('branchCfm').value = Math.round(config.branchFlow);
-        document.getElementById('branchWidth').value = Math.round(config.branchW);
-        document.getElementById('branchHeight').value = Math.round(config.branchH);
-        calculateYPiece();
-    }
+  /* ---- wiring ---- */
+  document.querySelectorAll('#unitToggle button').forEach((b) => {
+    b.addEventListener('click', () => setUnit(b.dataset.unit, true));
+  });
+  fields.forEach((k) => els[k].addEventListener('input', () => { persist(); compute(); }));
 
-    window.onload = function() {
-        setUnitSystem('IP'); 
-    };
-</script>
+  $('btnReset').addEventListener('click', () => { loadDefaults(); persist(); compute(); HvacSuite.toast('Reset to defaults'); });
+  $('btnShare').addEventListener('click', () => HvacSuite.shareLink(currentState()));
+  $('btnCopy').addEventListener('click', () => {
+    const v = {}; fields.forEach((k) => (v[k] = els[k].value));
+    const text = `Y-Piece Duct Splitter\n` +
+      `Main: X=${v.X} ${flowLabel()}, ${v.A}×${v.B} ${lenLabel()}\n` +
+      `Branch S-1: Z=${v.Z} ${flowLabel()}, ${v.E}×${v.F} ${lenLabel()}\n` +
+      `ANS = ${$('rANS').textContent}\nRemaining flow (Y) = ${$('rY').textContent}\n` +
+      `Main velocity = ${$('rVmain').textContent}\nBranch velocity = ${$('rVbranch').textContent}\n` +
+      `Remaining-path velocity = ${$('rVthrough').textContent}`;
+    HvacSuite.copyText(text, 'Results copied');
+  });
 
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('../sw.js').catch(() => {});
-        });
-    }
+  HvacSuite.initNav();
+  restore();
+  compute();
+})();
 </script>
 </body>
 </html>

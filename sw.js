@@ -1,50 +1,64 @@
-const CACHE = 'hvac-suite-v1';
-const ASSETS = [
-    './',
-    './index.html',
-    './y/index.html',
-    './duct/index.html',
-    './psy/index.html',
-    './chw/index.html',
-    './conv/index.html',
-    './icons/icon-192.png',
-    './icons/icon-512.png'
+/*!
+ * HVAC Design Suite — service worker
+ * Cache-first for the suite's own files (precached on install), so every
+ * tool keeps working with no signal. Cross-origin requests (Google Fonts)
+ * are cached opportunistically on first successful fetch and served from
+ * cache thereafter; if the very first visit was offline, the page still
+ * renders with its fallback font stack.
+ */
+const CACHE_VERSION = 'hvac-suite-v3';
+const PRECACHE_URLS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './assets/theme.css',
+  './assets/app.js',
+  './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png',
+  './icons/favicon-16.png',
+  './icons/favicon-32.png',
+  './y/index.html',
+  './duct/index.html',
+  './psy/index.html',
+  './chw/index.html',
+  './conv/index.html',
 ];
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE)
-            .then((cache) => cache.addAll(ASSETS))
-            .then(() => self.skipWaiting())
-    );
+  event.waitUntil(
+    caches.open(CACHE_VERSION)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys()
-            .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-            .then(() => self.clients.claim())
-    );
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
+  if (event.request.method !== 'GET') return;
 
-    event.respondWith(
-        caches.match(event.request).then((cached) => {
-            if (cached) return cached;
-            return fetch(event.request)
-                .then((response) => {
-                    if (response && response.ok && event.request.url.startsWith(self.location.origin)) {
-                        const clone = response.clone();
-                        caches.open(CACHE).then((cache) => cache.put(event.request, clone));
-                    }
-                    return response;
-                })
-                .catch(() => {
-                    if (event.request.mode === 'navigate') return caches.match('./index.html');
-                    return new Response('', { status: 503, statusText: 'Offline' });
-                });
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      const network = fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
         })
-    );
+        .catch(() => cached);
+      // cache-first for same-origin precached assets; network-first fallback otherwise
+      return cached || network;
+    })
+  );
 });

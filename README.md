@@ -1,104 +1,213 @@
 # HVAC Design Suite
 
-**Engineering calculator suite for mechanical HVAC design** — a collection of five production-grade, standards-based utilities delivered as an installable, offline-first progressive web application. Zero runtime dependencies, zero build step: plain HTML, CSS, and JavaScript.
+Five offline-first HVAC engineering calculators, built as plain HTML/CSS/JS with no
+build step and no runtime dependencies. Installable as a PWA; everything keeps
+working with no signal once it has been opened once.
 
-| | |
-|---|---|
-| **Live Application** | https://shaikhnedab.github.io/hvac/ |
-| **Repository** | https://github.com/shaikhnedab/hvac |
-| **License** | Proprietary |
-| **Deployment** | GitHub Pages (via GitHub Actions) |
+### ▶️ Live application: **https://shaikhnedab.github.io/hvac/**
 
----
-
-## Applications
-
-| # | Application | Module | Description |
-|---|---|---|---|
-| 1 | **Y-Piece Duct Splitter** | [`y/`](y/) | ANS throat sizing for Y-branch duct splits, remaining-flow and velocity analysis with a live vector schematic. Dual-unit (SI / IP). |
-| 2 | **Duct & Plenum Sizer** | [`duct/`](duct/) | Round and rectangular duct sizing by equal-friction or constant-velocity methods; standard-size lookup tables; capsule/flat-oval sizing (SMACNA Heyt-Diaz); plenum box dimensioning. Dual-unit (US / SI). |
-| 3 | **Psychrometric Calculator** | [`psy/`](psy/) | Complete moist-air property analysis with interlocking relative-humidity / wet-bulb / dew-point inputs and ISHRAE 1.0% peak city presets. Dual-unit (SI / IP). |
-| 4 | **Chilled Water Pipe Sizer** | [`chw/`](chw/) | Chilled-water pipe selection from AHU tonnage using 2.4 / 2.6 GPM-per-ton standards, friction-based and velocity-based capacity charts. |
-| 5 | **Unit Converter** | [`conv/`](conv/) | Instant multi-field conversion for length, area, airflow, temperature, pressure, and cooling capacity in HVAC unit sets. |
+Repository: **https://github.com/shaikhnedab/hvac**
 
 ---
 
-## Platform Features
+## Screenshots
 
-- **Unified navigation** — persistent cross-application toolbar, layout-consistent across all modules and viewport sizes (desktop, tablet, mobile).
-- **Standards-based workflows** — click-to-apply industry benchmark rows and standard product sizes reduce lookup time and transcription errors.
-- **Dual-unit presentation** — every result is rendered in the active unit system with the equivalent value in the alternate system.
-- **Data portability** — one-click copy of results and preset data to the clipboard.
-- **Responsive engineering theme** — high-contrast dark interface, optimized for field use on handheld devices.
-- **Offline capability** — installable PWA with service-worker caching; fully functional without network access.
+**Dashboard**
 
----
+![Dashboard](screenshots/01-dashboard.png)
 
-## Engineering Methodology
+**Duct & Plenum Sizer** — equal-friction sizing with a click-to-lock catalog table
 
-### Global Unit Conventions
+![Duct & Plenum Sizer](screenshots/02-duct-sizer.png)
 
-All modules operate on a site-wide approximation of **1 inch = 25 mm** (rather than the exact 25.4 mm) to keep inch- and metric-based results mutually consistent and aligned with standard commercial product sizes.
+**Y-Piece Duct Splitter** — live proportioned schematic with the ANS throat callout
 
-| Quantity | Factor |
-|---|---|
-| Length | 1 in = 25 mm; 1 ft = 300 mm |
-| Airflow | 1 L/s = 2.1189 CFM; 1 m³/h = 0.5886 CFM |
-| Velocity | 1 m/s = 196.85 FPM |
-| Pressure | 1 bar = 100 kPa; 1 psi = 6.89476 kPa; 1 in.wg = 0.249089 kPa (4.01865 in.wg/kPa) |
-| Cooling capacity | 1 TR = 3.51685 kW; 1 hp = 0.7457 kW |
-| Temperature | °F = 9/5·°C + 32; K = °C + 273.15 |
-| Friction (duct) | 1 Pa/m ⇄ 1 in.wg/100 ft at 0.0401865 |
+![Y-Piece Duct Splitter](screenshots/03-y-piece.png)
 
-### Chilled Water Pipe Sizing
+**Psychrometric Calculator** — saturation curve, RH reference lines, state point
 
-- Flow generation at **2.4 or 2.6 GPM/TR** (user-selectable); total flow = tonnage × GPM/TR.
-- Capacity charts: pipe sizes ≤ 4 in rated at **4 ft/100 ft** and **5 ft/100 ft** friction; sizes 5–12 in rated on a velocity basis (208 TR @ 5 in … 1174 TR @ 12 in). Chart capacities are published at 2.4 GPM/TR and re-rated for the active standard: `capacity = base × 2.4 / (GPM/TR)`.
-- Selection logic: **safe recommendation** is the smallest pipe whose rated capacity meets or exceeds the load; a **borderline option** is offered one size smaller when the load falls within a 15% buffer of its capacity.
+![Psychrometric Calculator](screenshots/04-psychrometrics.png)
 
-### Duct Sizing
+**Chilled Water Pipe Sizer** — live Darcy–Weisbach hydraulics, click-to-lock schedule
 
-- **Equal-friction round duct** (Altshuler-Tsal): `D = (0.10913 · Q^1.9 / f)^(1/5.02)`, with `D` in inches, `Q` in CFM, `f` in in.wg/100 ft. Reverse form `f = 0.10913 · Q^1.9 / D^5.02` for friction at a given size.
-- **Constant-velocity** sizing: `A = Q/V`, `D = √(4A/π) × 12`.
-- **Rectangular equivalents** (ASHRAE): `De = 1.30 · (a·b)^0.625 / (a+b)^0.25`; the unknown side is resolved by bisection, with an advisory when the aspect ratio exceeds **4:1**.
-- **Standard round sizes**: 23 US (6–60 in) and 17 SI (150–1250 mm) sizes; live velocity/friction per row at the entered airflow, automatic closest-size highlighting, click-to-apply.
-- **Flat oval (capsule) ducts** (SMACNA Heyt-Diaz): `De = 1.55 · A^0.625 / P^0.25`, where `A = πB²/4 + B(A−B)` and `P = πB + 2(A−B)`; 2:1 standard sizes supplied; minor axis guidance 40–60% of major axis.
-- **Plenum boxes**: face area = Q/V; free side = area ÷ locked dimension; depth = max(side × 1.25, 18 in).
-- **Design benchmarks**: main supply 1200–1500 FPM @ 0.10 in.wg/100 ft; branch 700–900 FPM @ 0.08; collar/neck 400–600 FPM @ 0.05; exhaust mains 1000–1200 FPM @ 0.10; fresh-air intake 900–1000 FPM @ 0.08 (SI equivalents in m/s and Pa/m).
+![Chilled Water Pipe Sizer](screenshots/05-chilled-water.png)
 
-### Psychrometric Analysis
+**Unit Converter** — every field in a category live at once
 
-- **Saturation vapor pressure** (Magnus/Tetens, mbar): `p_ws = 6.1078 · 10^(7.5t/(237.3+t))`, t in °C.
-- **Dew point**: `t_dp = 237.3 · c/(7.5 − c)`, where `c = log₁₀(p_v/6.1078)`.
-- **Wet-bulb relation**: `p_v = p_ws,wb − (p·(t − t_wb)/1512)·(1 + 0.00114·t_wb)`; wet-bulb temperature solved iteratively (bisection, 20 iterations).
-- **Barometric pressure at altitude** (ISA): `p = 1013.25 · (1 − 2.25577×10⁻⁵·z)^5.25588` mbar.
-- **Humidity ratio**: `W = 0.621945 · p_v/(p − p_v)`.
-- **Enthalpy**: SI `h = 1.006t + W(2501 + 1.86t)` kJ/kg; IP `h = 0.240t_F + W(1061 + 0.444t_F)` Btu/lb.
-- **Specific volume**: `v = 287.055·(t + 273.15)·(1 + 1.6078W)/(p·100)` m³/kg.
-- **Interlocked inputs** — relative humidity, wet bulb, and dew point are computed mutually; states above saturation are clamped and flagged.
-- **ISHRAE 1.0% peak presets** for six Indian cities (New Delhi, Mumbai, Chennai, Kolkata, Hyderabad, Bengaluru).
+![Unit Converter](screenshots/06-converter.png)
 
-### Y-Piece Split Analysis
+**Responsive layout** — the same tools collapse cleanly to a phone
 
-- **ANS throat size**: `ANS = (Z/X)·A` — branch airflow ÷ main airflow × main duct width; rounded to 0.5 in (IP) or 1 mm (SI).
-- Remaining straight-path flow: `Y = X − Z`; face velocities from `V = Q/(W·H/144)` FPM for the main and the S-1 branch (E × F).
-- Advisory when the ANS throat exceeds the branch duct width E.
+<p align="center">
+  <img src="screenshots/07-mobile-dashboard.png" width="240" alt="Dashboard on mobile">
+  <img src="screenshots/08-mobile-duct-sizer.png" width="240" alt="Duct sizer on mobile">
+</p>
 
 ---
 
-## Development & Deployment
+## Quick start
 
-**Serving locally**
+Everything is live at **[shaikhnedab.github.io/hvac](https://shaikhnedab.github.io/hvac/)** —
+no install, no sign-up.
+
+1. **Pick a tool** from the dashboard, or use the sticky nav bar at the top of any page.
+2. **Type your values.** Every readout recalculates live — there is no Calculate button.
+3. **Switch units** with the segmented control in each tool's header (IP ⇄ SI). Your
+   entered values are converted, not reset, and the result stays the same case.
+4. **Click any row in a standard-size table** to lock the whole calculation to that
+   real, buyable catalog dimension and see the resulting velocity and friction. Click
+   the highlighted row's *use calculated size* link to release the lock.
+5. **Copy** any result block to the clipboard, or **Share** to copy a link that encodes
+   the entire case — send a colleague the exact scenario, not a screenshot.
+6. **Install it** (Chrome/Edge: install icon in the address bar; iOS Safari: Share →
+   Add to Home Screen) for a standalone app window with app shortcuts to all five tools.
+
+### Sharing a calculation
+
+Every calculation tool has a **Share** button. It writes the current inputs and unit
+system into the URL and copies it:
+
+```
+https://shaikhnedab.github.io/hvac/duct/?unit=ip&method=ef&dQ=2000&dF=0.1&dLock=12
+```
+
+Opening that link restores the exact case, including the locked catalog size. Tool
+inputs also persist locally, so returning to a tool brings back what you last typed.
+
+### Conventions worth knowing
+
+- **Duct and pipe cross-section sizing uses the nominal `1 in = 25 mm` rule**, so rounded
+  metric and inch product sizes line up. This applies to *sizes* only.
+- **Everything else converts exactly** — velocity, friction rate, altitude, temperature,
+  pressure, airflow. Duct friction converts at the true physical `8.172 Pa/m per
+  in.wg/100 ft`.
+- **Results show both units** for duct and Y-piece sizes, plus a *Fabricate to* line that
+  rounds up to a whole purchasable dimension (duct sizes are cut from stock).
+- The **Unit Converter is exact throughout** (`1 in = 25.4 mm`) since it isn't tied to
+  nominal product sizing.
+
+### Running it locally
+
+No build step — serve the folder with any static server:
 
 ```bash
 python -m http.server 8000
-# or any static file server — the suite has no server-side requirements
+# then open http://127.0.0.1:8000/
 ```
 
-**Continuous deployment**
-
-Pushing to the `master` branch triggers the [GitHub Actions workflow](.github/workflows/static.yml), which publishes the suite to GitHub Pages automatically. The same service worker used online provides full offline functionality for installed clients.
+Opening `index.html` directly from disk also works, though a local server is
+recommended so the service worker and share links behave normally.
 
 ---
 
-*Engineering references: ASHRAE Fundamentals, SMACNA HVAC Systems Duct Design (4th Ed.), ISHRAE design handbooks.*
+## The tools
+
+| Tool | Path | What it does |
+|---|---|---|
+| Y-Piece Duct Splitter | `/y/` | ANS throat sizing for a branch takeoff, remaining-flow and three velocity checks, live SVG schematic |
+| Duct & Plenum Sizer | `/duct/` | Equal-friction / constant-velocity round & rectangular sizing, standard-size tables, flat-oval ducts, plenum boxes |
+| Psychrometric Calculator | `/psy/` | Full moist-air state from dry-bulb + RH/WB/DP, live psychrometric chart, ISHRAE city presets |
+| Chilled Water Pipe Sizer | `/chw/` | AHU tonnage → pipe size, from live Darcy–Weisbach hydraulics |
+| Unit Converter | `/conv/` | Length, area, air flow, velocity, water flow, temperature, pressure, cooling power — every field live at once |
+
+---
+
+## What changed in this pass
+
+This was a rebuild on top of the original suite's scope and formulas, not just a
+re-skin. Roughly in order of how much it matters day to day:
+
+**New engineering capability**
+- The **chilled-water sizer** no longer reads from a fixed capacity chart — it solves
+  Darcy–Weisbach (Swamee–Jain friction factor, commercial-steel roughness) live for
+  every standard pipe size, so it works at *any* flow, not just the rows that happened
+  to be tabulated. It still reproduces the chart's original anchor points (208 TR at
+  5″, ~1,163–1,174 TR at 12″).
+- The **psychrometric calculator** gained a live chart (saturation curve + 20/40/60/80%
+  RH reference lines + your state point, at your actual altitude) and the SI/IP enthalpy
+  readouts now use the two *native* ASHRAE formulas rather than a naive kJ/kg→Btu/lb
+  conversion — those formulas use different reference datums, so a straight unit
+  conversion between them would have quietly been wrong.
+- The **duct sizer** and **chilled-water sizer** standard-size tables are now
+  interactive: click a catalog row to lock the whole calculation to that real, buyable
+  size and see the resulting velocity/friction, instead of only ever seeing the
+  unrounded theoretical target.
+- The **Y-piece tool** adds a fourth velocity check (the remaining/through duct
+  downstream of the split) alongside main and branch velocity.
+
+**Every tool, consistently**
+- Inputs persist locally between visits, and a *Share* button encodes the current case
+  into the URL — send a colleague the exact scenario, not a screenshot.
+- A single, audited set of unit-conversion constants is shared across every tool
+  (`assets/app.js`). See *Conventions worth knowing* above for exactly where the
+  nominal `1 in = 25 mm` rule applies and where conversion is exact.
+- Fabricated duct and plenum dimensions are rounded **up** to whole stock sizes and shown
+  alongside the exact theoretical target, so you can see both the design value and what
+  to actually order.
+- Copy-to-clipboard, keyboard-accessible forms, visible focus states, and `aria-live` on
+  warnings.
+- One shared stylesheet/script instead of per-page duplication, so the suite is one
+  visual system rather than five similar-looking pages.
+
+**PWA**
+- Proper icon set (16/32/192/512/maskable) plus app shortcuts to all five tools.
+- Versioned, cache-first service worker with automatic old-cache cleanup.
+
+---
+
+## Why the numbers can be trusted
+
+Every formula was checked against the original methodology and, where possible,
+cross-checked against known reference values before being wired into the UI. The
+specific regression tests that run on each change:
+
+- Sea-level barometric pressure round-trips to exactly **14.696 psia**.
+- A 5″ pipe at 2.4 GPM/TR lands on exactly **208 TR**.
+- IP ⇄ SI toggles round-trip a case back to its original numbers, including the locked
+  catalog size and every *Fabricate to* value.
+- Altitude-corrected psychrometrics, and both native enthalpy forms.
+- Fabricated dimensions round up to whole units, with float-noise tolerance so an
+  IP→SI→IP round trip can't jump a size.
+
+The one deliberately-approximate area — ISHRAE city preset values — is labeled as
+representative in the UI, because exact 1% design DB/MWB figures depend on which
+handbook edition you're citing.
+
+---
+
+## Architecture
+
+```
+index.html            Landing page
+manifest.webmanifest   PWA manifest (icons, shortcuts)
+sw.js                  Cache-first service worker
+assets/
+  theme.css             Design tokens + shared components (nav, cards, forms, tables, charts)
+  app.js                Shared utilities: persistence, share-links, toasts, unit constants, icons
+icons/                  SVG + PNG icon set (192/512/maskable/apple-touch/favicons)
+screenshots/            README screenshots
+y/     duct/    psy/    chw/     conv/
+  index.html            Each tool is self-contained: shared theme.css/app.js + its own inline logic
+```
+
+No bundler, no package.json, no node_modules. Open any `index.html` directly or serve
+the folder with anything static (`python -m http.server`, GitHub Pages, Netlify, etc.).
+
+Deployment is automated: pushing to `master` triggers
+[`.github/workflows/static.yml`](.github/workflows/static.yml), which publishes the
+repository to GitHub Pages.
+
+---
+
+## Reference
+
+- Duct sizing: SMACNA *HVAC Systems Duct Design*, ASHRAE rectangular equivalent
+  diameter, Heyt & Diaz flat-oval correlation.
+- Psychrometrics: Magnus saturation approximation, ISA barometric formula, ASHRAE
+  moist-air enthalpy (SI and IP forms).
+- Chilled water: Darcy–Weisbach with the Swamee–Jain explicit friction factor,
+  commercial-steel absolute roughness (0.00015 ft).
+
+Each tool's footer states its exact formula set. Where an assumption is editable
+(friction basis, max velocity), it's exposed in the UI rather than buried in the code —
+verify it against your project's spec before issuing drawings.

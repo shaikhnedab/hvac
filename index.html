@@ -1,103 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HVAC Design Dashboard</title>
-    <meta name="theme-color" content="#121824">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <style>
-        :root {
-            --bg-color: #121824;
-            --panel-bg: #1e2538;
-            --border-color: #2e374e;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-color: #3b82f6;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        html { overflow-y: scroll; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
-        .wrapper { width: 100%; max-width: 600px; margin: 0 auto; padding: 2rem 1rem; }
-        header { text-align: center; margin-bottom: 3rem; }
-        header h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #fff; }
-        header p { color: var(--text-muted); }
-        
-        .nav-grid { display: grid; gap: 1rem; }
-        .nav-card { 
-            background-color: var(--panel-bg); 
-            border: 1px solid var(--border-color); 
-            padding: 1.5rem; 
-            border-radius: 12px; 
-            text-decoration: none; 
-            color: var(--text-main);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .nav-card:hover { border-color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-        .nav-card h3 { font-size: 1.1rem; }
-        .nav-card span { color: var(--accent-color); font-weight: bold; }
-
-        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
-        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
-        .tool-nav a.active { color: #fff; background: var(--accent-color); }
-        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
-        .tool-nav .nav-brand:hover { background: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HVAC Design Suite</title>
+<meta name="description" content="Offline-first HVAC engineering calculators — duct &amp; plenum sizing, psychrometrics, chilled-water pipe sizing, Y-piece splits, and unit conversion.">
+<meta name="theme-color" content="#0a1120">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
 
-<nav class="tool-nav">
-    <a href="index.html" class="nav-brand">HVAC Suite</a>
-    <a href="./y/index.html">Y-Piece</a>
-    <a href="./duct/index.html">Duct Sizer</a>
-    <a href="./psy/index.html">Psychrometrics</a>
-    <a href="./chw/index.html">Chilled Water</a>
-    <a href="./conv/index.html">Converter</a>
+<nav class="tool-nav" aria-label="Suite navigation">
+  <a href="index.html" class="nav-brand"><span class="mark" aria-hidden="true"></span>HVAC Suite</a>
+  <a href="./y/index.html" class="nav-link">Y-Piece</a>
+  <a href="./duct/index.html" class="nav-link">Duct Sizer</a>
+  <a href="./psy/index.html" class="nav-link">Psychrometrics</a>
+  <a href="./chw/index.html" class="nav-link">Chilled Water</a>
+  <a href="./conv/index.html" class="nav-link">Converter</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-status"><span class="dot"></span><span class="label">Ready offline</span></span>
 </nav>
 
-<div class="wrapper">
-    <header>
-        <h1>HVAC Design Suite</h1>
-        <p>Select a utility to begin your calculation</p>
-    </header>
+<div class="shell">
 
-    <div class="nav-grid">
-        <a href="./y/index.html" class="nav-card">
-            <h3>Y-Piece Duct Splitter</h3>
-            <span>Launch →</span>
-        </a>
-        <a href="./duct/index.html" class="nav-card">
-            <h3>Duct Pressure Drop</h3>
-            <span>Launch →</span>
-        </a>
-        <a href="./psy/index.html" class="nav-card">
-            <h3>Psychrometric Conversion</h3>
-            <span>Launch →</span>
-        </a>
-        <a href="./chw/index.html" class="nav-card">
-            <h3>Chilled Water Pipe Sizer</h3>
-            <span>Launch →</span>
-        </a>
-        <a href="./conv/index.html" class="nav-card">
-            <h3>Unit Converter</h3>
-            <span>Launch →</span>
-        </a>
-    </div>
+  <header class="hero">
+    <div class="kicker">Field-ready engineering utilities</div>
+    <h1>Five calculators for one job: sizing it right, on site.</h1>
+    <p>Duct sizing, psychrometrics, chilled-water piping, Y-branch splits and unit conversion — standards-based, dual-unit, and fully usable with no signal.</p>
+  </header>
+
+  <div class="tool-grid" id="toolGrid">
+    <a href="./y/index.html" class="tool-card" data-tool="y">
+      <span class="icon" aria-hidden="true"></span>
+      <h3>Y-Piece Duct Splitter</h3>
+      <p>ANS throat sizing for branch takeoffs, remaining-flow and velocity checks, with a live proportioned schematic.</p>
+      <span class="go">Open tool →</span>
+    </a>
+    <a href="./duct/index.html" class="tool-card" data-tool="duct">
+      <span class="icon" aria-hidden="true"></span>
+      <h3>Duct &amp; Plenum Sizer</h3>
+      <p>Equal-friction and constant-velocity round/rectangular sizing, standard-size tables, flat-oval ducts, plenum boxes.</p>
+      <span class="go">Open tool →</span>
+    </a>
+    <a href="./psy/index.html" class="tool-card" data-tool="psy">
+      <span class="icon" aria-hidden="true"></span>
+      <h3>Psychrometric Calculator</h3>
+      <p>Full moist-air properties from any two inputs, an interactive chart, and ISHRAE peak-summer city presets.</p>
+      <span class="go">Open tool →</span>
+    </a>
+    <a href="./chw/index.html" class="tool-card" data-tool="chw">
+      <span class="icon" aria-hidden="true"></span>
+      <h3>Chilled Water Pipe Sizer</h3>
+      <p>Pipe selection from AHU tonnage using live friction &amp; velocity hydraulics, not a fixed lookup table.</p>
+      <span class="go">Open tool →</span>
+    </a>
+    <a href="./conv/index.html" class="tool-card" data-tool="conv">
+      <span class="icon" aria-hidden="true"></span>
+      <h3>Unit Converter</h3>
+      <p>Length, area, flow, velocity, water flow, temperature, pressure and cooling-capacity conversions, all live.</p>
+      <span class="go">Open tool →</span>
+    </a>
+  </div>
+
+  <footer class="suite-footer">
+    <span>Zero build step · zero runtime dependencies · installable, offline-first PWA</span>
+    <span><a href="https://github.com/shaikhnedab/hvac" target="_blank" rel="noopener">Source on GitHub</a></span>
+  </footer>
+
 </div>
 
+<script src="assets/app.js"></script>
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        });
-    }
-</script>
+  HvacSuite.initNav();
 
+  const icons = { y: HvacSuite.ICONS.y, duct: HvacSuite.ICONS.duct, psy: HvacSuite.ICONS.psy, chw: HvacSuite.ICONS.chw, conv: HvacSuite.ICONS.conv };
+  document.querySelectorAll('.tool-card').forEach((card) => {
+    const id = card.getAttribute('data-tool');
+    card.querySelector('.icon').innerHTML = icons[id] || '';
+  });
+
+  // mark the most recently used tool
+  const recents = HvacSuite.store.get('recents', []);
+  if (recents.length) {
+    const mostRecent = recents[0].id;
+    const card = document.querySelector(`.tool-card[data-tool="${mostRecent}"]`);
+    if (card) {
+      const badge = document.createElement('span');
+      badge.className = 'recent-badge';
+      badge.textContent = 'Last used';
+      card.appendChild(badge);
+    }
+  }
+</script>
 </body>
 </html>

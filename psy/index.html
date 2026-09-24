@@ -1,586 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Psychrometric Calculator Pro</title>
-    <meta name="theme-color" content="#121824">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121824'/%3E%3Ccircle cx='50' cy='50' r='28' fill='%233b82f6'/%3E%3C/svg%3E">
-    <link rel="manifest" href="../manifest.webmanifest">
-    <link rel="apple-touch-icon" href="../icons/icon-192.png">
-    <style>
-        :root {
-            --bg-color: #121824;
-            --panel-bg: #1e2538;
-            --border-color: #2e374e;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --success-color: #10b981;
-            --highlight-color: #f59e0b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        html { overflow-y: scroll; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
-        .wrapper { width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
-        header { margin-bottom: 2rem; text-align: center; }
-        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
-        header p { color: var(--text-muted); font-size: 0.95rem; }
-        
-        .container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
-
-        .card { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .card h2 { font-size: 1.2rem; margin-bottom: 1.2rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        
-        .split-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 600px) { .split-card-grid { grid-template-columns: 1fr; } }
-
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group.disabled { opacity: 0.4; pointer-events: none; }
-        
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
-        .input-wrapper { display: flex; position: relative; }
-        input[type="number"], select {
-            width: 100%; padding: 0.65rem 0.75rem; background-color: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 6px; color: var(--text-main); font-size: 1rem; outline: none; transition: border 0.2s;
-        }
-        input:focus, select:focus { border-color: var(--accent-color); }
-        .unit { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
-        input { padding-right: 4.5rem !important; }
-
-        .toggle-group { display: flex; gap: 0.5rem; background: var(--bg-color); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-        .toggle-btn { flex: 1; border: none; background: none; color: var(--text-muted); padding: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-        .toggle-btn.active { background: var(--accent-color); color: #fff; }
-
-        .radio-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
-        .radio-label input { accent-color: var(--accent-color); }
-        .radio-label.active-criterion { color: var(--text-main); font-weight: 600; }
-
-        .results-list { display: flex; flex-direction: column; gap: 1rem; }
-        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; }
-        .result-val { font-size: 1.1rem; font-weight: 600; color: var(--success-color); text-align: right; }
-        .sec-val { display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
-        
-        .highlight-item { border-left: 4px solid var(--highlight-color); }
-        .highlight-item .result-val { color: var(--highlight-color); }
-
-        .alert { font-size: 0.8rem; color: #f87171; background-color: rgba(248, 113, 113, 0.1); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: none; }
-
-        .back-link { color: var(--text-muted); text-decoration: none; margin-bottom: 1rem; display: inline-block; font-size: 0.9rem; }
-        .back-link:hover { color: var(--text-main); }
-
-        .tool-nav { position: sticky; top: 0; z-index: 50; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; background: rgba(18,24,36,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border-color); padding: 0.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0 0 10px 10px; }
-        .tool-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-        .tool-nav a:hover { color: var(--text-main); background: var(--panel-bg); }
-        .tool-nav a.active { color: #fff; background: var(--accent-color); }
-        .tool-nav .nav-brand { font-weight: 700; color: var(--text-main); margin-right: 0.75rem; }
-        .tool-nav .nav-brand:hover { background: none; }
-
-        .preset-banner { display: none; margin-top: 0.75rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; }
-        .preset-banner .pb-title { color: var(--success-color); font-weight: 600; margin-bottom: 0.3rem; }
-        .preset-banner .pb-values { color: var(--text-main); display: flex; flex-wrap: wrap; gap: 0.75rem; }
-        .preset-banner .pb-values span { background: rgba(0,0,0,0.2); padding: 0.2rem 0.6rem; border-radius: 4px; }
-        .pb-copy { margin-top: 0.5rem; padding: 0.35rem 0.8rem; background: none; border: 1px solid var(--success-color); color: var(--success-color); border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
-        .pb-copy:hover { background: var(--success-color); color: #fff; }
-
-        .input-invalid input { border-color: #f87171 !important; box-shadow: 0 0 0 1px #f87171; }
-
-        .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-        .tool-btn { padding: 0.5rem 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
-        .tool-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
-        .tool-btn.primary { color: var(--accent-color); border-color: var(--accent-color); }
-        .tool-btn.primary:hover { background: var(--accent-color); color: #fff; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychrometric Calculator · HVAC Suite</title>
+<meta name="description" content="Full moist-air properties from dry-bulb plus RH, wet-bulb or dew-point, with ISHRAE peak-summer city presets and a live psychrometric chart.">
+<meta name="theme-color" content="#0a1120">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+  .chart-wrap { background: var(--inset); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 0.6rem; margin-bottom: 1rem; }
+  .chart-wrap svg { width: 100%; height: auto; display: block; }
+  .chart-axis-label { fill: var(--muted-2); font-family: var(--font-mono); font-size: 9px; }
+  .chart-grid { stroke: var(--line-soft); stroke-width: 1; }
+  .chart-sat { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+  .chart-rh { fill: none; stroke: var(--cyan); stroke-width: 0.8; opacity: 0.35; }
+  .chart-rh-label { fill: var(--cyan); font-family: var(--font-mono); font-size: 8px; opacity: 0.7; }
+  .chart-point { fill: var(--copper); stroke: #fff; stroke-width: 1.2; }
+  .chart-crosshair { stroke: var(--copper); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.6; }
+  .preset-select { width: 100%; }
+  .group-title { font-size: 0.78rem; color: var(--copper); font-weight: 600; margin: 1.1rem 0 0.5rem; text-transform: none; }
+  .group-title:first-child { margin-top: 0; }
+</style>
 </head>
 <body>
 
-<nav class="tool-nav">
-    <a href="../index.html" class="nav-brand">HVAC Suite</a>
-    <a href="../y/index.html">Y-Piece</a>
-    <a href="../duct/index.html">Duct Sizer</a>
-    <a href="../psy/index.html" class="active">Psychrometrics</a>
-    <a href="../chw/index.html">Chilled Water</a>
-    <a href="../conv/index.html">Converter</a>
+<nav class="tool-nav" aria-label="Suite navigation">
+  <a href="../index.html" class="nav-brand"><span class="mark" aria-hidden="true"></span>HVAC Suite</a>
+  <a href="../y/index.html" class="nav-link">Y-Piece</a>
+  <a href="../duct/index.html" class="nav-link">Duct Sizer</a>
+  <a href="../psy/index.html" class="nav-link">Psychrometrics</a>
+  <a href="../chw/index.html" class="nav-link">Chilled Water</a>
+  <a href="../conv/index.html" class="nav-link">Converter</a>
+  <span class="nav-spacer"></span>
+  <span class="nav-status"><span class="dot"></span><span class="label">Ready offline</span></span>
 </nav>
 
-<div class="wrapper">
-    <header>
-        <h1>Psychrometric Air Property Calculator</h1>
-        <p>Interactive thermodynamic property analyzer with synchronized dual-unit conversions.</p>
-    </header>
+<div class="shell">
 
-    <div class="toggle-group">
-        <button class="toggle-btn" id="unit-si" onclick="setUnitSystem('SI')">SI Units (Metric)</button>
-        <button class="toggle-btn active" id="unit-ip" onclick="setUnitSystem('IP')">IP Units (US-Imperial)</button>
+  <div class="page-head">
+    <div class="titles">
+      <span class="kicker">Moist-air properties</span>
+      <h1>Psychrometric Calculator</h1>
+      <p>Full state from dry-bulb plus any one of relative humidity, wet-bulb or dew-point — with a live chart and ISHRAE city presets.</p>
+    </div>
+    <div class="segmented" id="unitToggle" role="group" aria-label="Unit system">
+      <button type="button" data-unit="si" class="active">SI · °C / kPa</button>
+      <button type="button" data-unit="ip">IP · °F / psia</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="panel">
+      <div class="panel-title"><div><h2>State inputs</h2><div class="sub">Dry-bulb, altitude, and one more property</div></div></div>
+
+      <div class="field">
+        <label for="pCity">ISHRAE city preset</label>
+        <select id="pCity" class="preset-select">
+          <option value="">Custom — enter values below</option>
+        </select>
+        <div class="field-note" id="cityNote" hidden></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="pDB">Dry-bulb temperature <span class="hint" id="u_pDB">°C</span></label>
+          <input type="number" id="pDB" inputmode="decimal" step="any">
+        </div>
+        <div class="field">
+          <label for="pAlt">Altitude <span class="hint" id="u_pAlt">m</span></label>
+          <input type="number" id="pAlt" inputmode="decimal" step="any">
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>Second known property</legend>
+        <div class="segmented" id="modeToggle" style="width:100%;">
+          <button type="button" data-mode="rh" class="active" style="flex:1;">RH</button>
+          <button type="button" data-mode="wb" style="flex:1;">Wet-bulb</button>
+          <button type="button" data-mode="dp" style="flex:1;">Dew-point</button>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="pSecond" id="pSecondLabel">Relative humidity <span class="hint" id="u_pSecond">%</span></label>
+        <input type="number" id="pSecond" inputmode="decimal" step="any">
+      </div>
+
+      <div id="warnRange" class="alert alert-danger" hidden></div>
+      <div id="warnCondense" class="alert alert-amber" hidden></div>
+
+      <div class="btn-row">
+        <button class="btn" id="btnReset" type="button"><span class="ico" data-icon="reset"></span>Reset</button>
+        <button class="btn" id="btnShare" type="button"><span class="ico" data-icon="share"></span>Share</button>
+      </div>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <h2>Input Air Parameters</h2>
+    <div class="readout-panel">
+      <div class="panel-title"><div><h2>Moist air state</h2><div class="sub">Chart shows the saturation line at your altitude and current point</div></div></div>
 
-            <div class="form-group" style="margin-bottom: 1.5rem; border: 1px dashed var(--accent-color); padding: 0.75rem; border-radius: 8px;">
-                <label for="ishraePreset" style="color: var(--accent-color); font-weight: 600;">ISHRAE 1.0% Peak Heat Load Presets</label>
-                <select id="ishraePreset" onchange="loadIshraePreset()">
-                    <option value="custom">-- Select Indian City Preset (Manual Input) --</option>
-                    <option value="delhi">New Delhi (Hot & Dry / Peak Summer)</option>
-                    <option value="mumbai">Mumbai (Warm & Humid)</option>
-                    <option value="chennai">Chennai (Warm & Humid / High Ambient)</option>
-                    <option value="kolkata">Kolkata (Warm & Humid)</option>
-                    <option value="hyderabad">Hyderabad (Hot & Dry / Composite)</option>
-                    <option value="bangalore">Bengaluru (Temperate / Mild Peak)</option>
-                </select>
-                <div class="preset-banner" id="preset-banner">
-                    <div class="pb-title" id="pb-title">Loaded Preset</div>
-                    <div class="pb-values">
-                        <span id="pb-db">DB: -</span>
-                        <span id="pb-wb">WB: -</span>
-                        <span id="pb-alt">Alt: -</span>
-                    </div>
-                    <button class="pb-copy" onclick="copyPresetData(this)">Copy Preset Data</button>
-                </div>
-            </div>
-            
-            <div class="split-card-grid">
-                <div class="form-group">
-                    <label for="dbTemp">Dry Bulb Temperature</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="dbTemp" value="77.00" step="0.1" oninput="resetPresetDropdown(); calculate();">
-                        <span class="unit" id="unit-db">°F</span>
-                    </div>
-                </div>
+      <div class="chart-wrap">
+        <svg viewBox="0 0 640 380" id="psyChart" role="img" aria-label="Psychrometric chart"></svg>
+      </div>
 
-                <div class="form-group">
-                    <label for="altitude">Altitude</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="altitude" value="0.00" oninput="resetPresetDropdown(); calculate();">
-                        <span class="unit" id="unit-alt">ft</span>
-                    </div>
-                </div>
-            </div>
+      <div class="group-title">Psychrometric state</div>
+      <div class="readout-grid cols-2">
+        <div class="readout"><div class="r-label">Relative humidity</div><div class="r-value" id="rRH">—</div></div>
+        <div class="readout"><div class="r-label">Wet-bulb temperature</div><div class="r-value" id="rWB">—</div></div>
+        <div class="readout" style="grid-column:1/-1;"><div class="r-label">Dew-point temperature</div><div class="r-value" id="rDP">—</div></div>
+      </div>
 
-            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
-                Select Secondary Interlocking Parameter:
-            </p>
+      <div class="group-title">Moist air properties</div>
+      <div class="readout-grid cols-2">
+        <div class="readout"><div class="r-label">Barometric pressure</div><div class="r-value" id="rPbar">—</div></div>
+        <div class="readout"><div class="r-label">Saturated vapor pressure</div><div class="r-value" id="rPws">—</div></div>
+        <div class="readout"><div class="r-label">Partial vapor pressure</div><div class="r-value" id="rPv">—</div></div>
+        <div class="readout"><div class="r-label">Humidity ratio</div><div class="r-value" id="rW">—</div></div>
+        <div class="readout featured"><div class="r-label">Total enthalpy</div><div class="r-value" id="rH">—</div></div>
+        <div class="readout"><div class="r-label">Specific volume</div><div class="r-value" id="rV">—</div></div>
+      </div>
 
-            <div class="form-group">
-                <label class="radio-label active-criterion" id="lbl-radio-rh">
-                    <input type="radio" name="secondaryParam" value="rh" checked onchange="toggleInputs()"> Relative Humidity
-                </label>
-                <div class="input-wrapper" id="wrapper-rh">
-                    <input type="number" id="relHum" value="55.00" min="0" max="100" step="1" oninput="resetPresetDropdown(); calculate();">
-                    <span class="unit">%</span>
-                </div>
-            </div>
-
-            <div class="form-group" style="border-left: 3px solid var(--highlight-color); padding-left: 8px;">
-                <label class="radio-label" id="lbl-radio-wb">
-                    <input type="radio" name="secondaryParam" value="wb" onchange="toggleInputs()"> Wet Bulb Temperature
-                </label>
-                <div class="input-wrapper disabled" id="wrapper-wb">
-                    <input type="number" id="wbTemp" value="65.90" step="0.1" oninput="resetPresetDropdown(); calculate();">
-                    <span class="unit" id="unit-wb">°F</span>
-                </div>
-            </div>
-
-            <div class="form-group" style="border-left: 3px solid var(--highlight-color); padding-left: 8px;">
-                <label class="radio-label" id="lbl-radio-dp">
-                    <input type="radio" name="secondaryParam" value="dp" onchange="toggleInputs()"> Dew Point Temperature
-                </label>
-                <div class="input-wrapper disabled" id="wrapper-dp">
-                    <input type="number" id="dpTemp" value="60.10" step="0.1" oninput="resetPresetDropdown(); calculate();">
-                    <span class="unit" id="unit-dp-label">°F</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Calculated Thermodynamic Properties</h2>
-            <div class="results-list">
-                
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Atmospheric Barometric Pressure</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Station pressure at elevation</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-press">-</span>
-                        <span class="sec-val" id="res-press-alt"></span>
-                    </div>
-                </div>
-
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Saturated Vapor Pressure</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Max pressure limit (p<sub>ws</sub>)</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-sat-press">-</span>
-                        <span class="sec-val" id="res-sat-press-alt"></span>
-                    </div>
-                </div>
-
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Partial Vapor Pressure</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Actual water vapor split (p<sub>v</sub>)</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-part-press">-</span>
-                        <span class="sec-val" id="res-part-press-alt"></span>
-                    </div>
-                </div>
-
-                <div class="result-item highlight-item">
-                    <div>
-                        <label style="margin:0; font-weight:600;">Humidity Ratio (Moisture Content)</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Absolute humidity weight ratio</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-humidity-ratio">-</span>
-                        <span class="sec-val" id="res-humidity-ratio-alt"></span>
-                    </div>
-                </div>
-
-                <div class="result-item" style="border-left: 4px solid var(--accent-color);">
-                    <div>
-                        <label style="margin:0; color: var(--text-main); font-weight:600;">Total Enthalpy</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Energy index profile level</span>
-                    </div>
-                    <div class="result-val" style="color: var(--accent-color);">
-                        <span id="res-enthalpy">-</span>
-                        <span class="sec-val" id="res-enthalpy-alt"></span>
-                    </div>
-                </div>
-
-                <div class="result-item">
-                    <div>
-                        <label style="margin:0;">Specific Volume</label>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Space volume per air mass unit</span>
-                    </div>
-                    <div class="result-val">
-                        <span id="res-volume">-</span>
-                        <span class="sec-val" id="res-volume-alt"></span>
-                    </div>
-                </div>
-
-            </div>
-            <div id="saturation-alert" class="alert">Warning: Inputs out of logical range bounds (Condensation / Supersaturation state encountered).</div>
-            <div class="btn-row">
-                <button class="tool-btn primary" onclick="copyAllResults(this)">Copy All Results</button>
-                <button class="tool-btn" onclick="resetForm()">↺ Reset to Defaults</button>
-            </div>
-        </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnCopy" type="button"><span class="ico" data-icon="copy"></span>Copy results</button>
+      </div>
     </div>
+  </div>
+
+  <footer class="suite-footer">
+    <span>Magnus saturation curve · ISA barometric formula · ASHRAE moist-air enthalpy — city presets are representative design values, confirm against your handbook edition</span>
+    <span><a href="../index.html">← Back to suite</a></span>
+  </footer>
 </div>
 
+<script src="../assets/app.js"></script>
 <script>
-    let currentSystem = 'IP';
+(function () {
+  const U = HvacSuite.UNITS;
+  const $ = (id) => document.getElementById(id);
+  let unit = 'si';
+  let mode = 'rh';
 
-    const systemConfigs = {
-        SI: { db: 25.00, alt: 0.00, wb: 19.30, rh: 55.00, dp: 15.30, lblTemp: '°C', lblAlt: 'm' },
-        IP: { db: 77.00, alt: 0.00, wb: 65.90, rh: 55.00, dp: 60.10, lblTemp: '°F', lblAlt: 'ft' }
-    };
+  /* ---- core moist-air physics (all canonical: °C, mbar, meters) ---- */
+  function pws(tC) { return 6.1078 * Math.pow(10, (7.5 * tC) / (237.3 + tC)); }
+  function baroP(zM) { return 1013.25 * Math.pow(1 - 2.25577e-5 * zM, 5.25588); }
+  function humidityRatio(pv, p) { return (0.621945 * pv) / (p - pv); }
+  function dewPointFromPv(pv) { const c = Math.log10(pv / 6.1078); return (237.3 * c) / (7.5 - c); }
+  function pvFromWetBulb(tC, twbC, p) { return pws(twbC) - ((p * (tC - twbC)) / 1512) * (1 + 0.00114 * twbC); }
+  function bisect(f, lo, hi, iters) { for (let i = 0; i < iters; i++) { const mid = (lo + hi) / 2; if (f(mid) < 0) lo = mid; else hi = mid; } return (lo + hi) / 2; }
+  function wetBulbFromPv(tC, pvTarget, p) {
+    return bisect((twb) => pvFromWetBulb(tC, twb, p) - pvTarget, -60, tC, 60);
+  }
+  function enthalpyNative(tC, W, displayUnit) {
+    if (displayUnit === 'si') return 1.006 * tC + W * (2501 + 1.86 * tC); // kJ/kg
+    const tF = HvacSuite.cToF(tC);
+    return 0.240 * tF + W * (1061 + 0.444 * tF); // Btu/lb
+  }
+  function specificVolumeSI(tC, W, pMbar) { return (287.055 * (tC + 273.15) * (1 + 1.6078 * W)) / (pMbar * 100); }
 
-    // Official ISHRAE 1.0% Peak External Design Conditions database mappings
-    const ishraeCities = {
-        delhi:     { si: { db: 44.00, alt: 216, wb: 24.00 }, ip: { db: 111.20, alt: 709,  wb: 75.20 } },
-        mumbai:    { si: { db: 35.20, alt: 14,  wb: 27.90 }, ip: { db: 95.36,  alt: 46,   wb: 82.22 } },
-        chennai:   { si: { db: 40.20, alt: 16,  wb: 27.00 }, ip: { db: 104.36, alt: 52,   wb: 80.60 } },
-        kolkata:   { si: { db: 39.10, alt: 6,   wb: 27.60 }, ip: { db: 102.38, alt: 20,   wb: 81.68 } },
-        hyderabad: { si: { db: 41.30, alt: 542, wb: 23.10 }, ip: { db: 106.34, alt: 1778, wb: 73.58 } },
-        bangalore: { si: { db: 34.60, alt: 921, wb: 21.20 }, ip: { db: 94.28,  alt: 3022, wb: 70.16 } }
-    };
+  const EXACT_M_PER_FT = 0.3048;
+  const MBAR_PER_PSI = U.KPA_PER_PSI * 10;
+  const M3KG_PER_FT3LB = 16.0185;
 
-    function loadIshraePreset() {
-        const cityKey = document.getElementById('ishraePreset').value;
-        if (cityKey === 'custom') {
-            document.getElementById('preset-banner').style.display = 'none';
-            return;
-        }
+  /* ---- unit conversion (temperature/altitude/pressure: exact physical; W: display-format only) ---- */
+  const toTempC = (v) => (unit === 'ip' ? HvacSuite.fToC(v) : v);
+  const fromTempC = (v) => (unit === 'ip' ? HvacSuite.cToF(v) : v);
+  const toAltM = (v) => (unit === 'ip' ? v * EXACT_M_PER_FT : v);
+  const fromAltM = (v) => (unit === 'ip' ? v / EXACT_M_PER_FT : v);
+  const fromPresMbar = (v) => (unit === 'ip' ? v / MBAR_PER_PSI : v / 10); // -> psia or kPa
+  const fromSpecVol = (v) => (unit === 'ip' ? v * M3KG_PER_FT3LB : v); // -> ft3/lb or m3/kg
 
-        const cityNames = {
-            delhi: 'New Delhi', mumbai: 'Mumbai', chennai: 'Chennai',
-            kolkata: 'Kolkata', hyderabad: 'Hyderabad', bangalore: 'Bengaluru'
-        };
+  function tempLabel() { return unit === 'ip' ? '°F' : '°C'; }
+  function altLabel() { return unit === 'ip' ? 'ft' : 'm'; }
+  function presLabel() { return unit === 'ip' ? 'psia' : 'kPa'; }
+  function wLabel() { return unit === 'ip' ? 'gr/lb' : 'g/kg'; }
+  function hLabel() { return unit === 'ip' ? 'Btu/lb' : 'kJ/kg'; }
+  function vLabel() { return unit === 'ip' ? 'ft³/lb' : 'm³/kg'; }
+  function fmtNum(v, dp) { dp = dp === undefined ? 2 : dp; return isFinite(v) ? Number(v.toFixed(dp)).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }) : '—'; }
 
-        const data = ishraeCities[cityKey][currentSystem.toLowerCase()];
+  /* ---- ISHRAE city presets (representative 1% design values — confirm against your handbook) ---- */
+  const CITIES = [
+    { id: 'delhi', name: 'New Delhi', desc: 'Hot & dry · peak summer', dbC: 41.0, mwbC: 24.0, altM: 216 },
+    { id: 'mumbai', name: 'Mumbai', desc: 'Warm & humid · coastal', dbC: 33.0, mwbC: 27.5, altM: 11 },
+    { id: 'chennai', name: 'Chennai', desc: 'Warm & humid · coastal', dbC: 37.0, mwbC: 26.0, altM: 16 },
+    { id: 'kolkata', name: 'Kolkata', desc: 'Warm & humid · coastal', dbC: 36.5, mwbC: 27.5, altM: 6 },
+    { id: 'hyderabad', name: 'Hyderabad', desc: 'Hot & dry · composite', dbC: 38.0, mwbC: 22.5, altM: 545 },
+    { id: 'bengaluru', name: 'Bengaluru', desc: 'Temperate · mild peak', dbC: 33.5, mwbC: 20.5, altM: 920 },
+  ];
+  const citySel = $('pCity');
+  CITIES.forEach((c) => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.name} — ${c.desc}`;
+    citySel.appendChild(opt);
+  });
+  citySel.addEventListener('change', () => {
+    const c = CITIES.find((x) => x.id === citySel.value);
+    const note = $('cityNote');
+    if (!c) { note.hidden = true; persist(); recompute(); return; }
+    mode = 'wb'; paintMode();
+    $('pDB').value = round3(unit === 'ip' ? fromTempC(c.dbC) : c.dbC);
+    $('pAlt').value = round3(unit === 'ip' ? fromAltM(c.altM) : c.altM);
+    $('pSecond').value = round3(unit === 'ip' ? HvacSuite.cToF(c.mwbC) : c.mwbC);
+    note.hidden = false;
+    note.textContent = `Representative 1% design DB / coincident MWB at ${c.altM} m — verify against your current ISHRAE/ASHRAE handbook for project use.`;
+    persist(); recompute();
+  });
+  function round3(v) { return Math.round(v * 1000) / 1000; }
 
-        // Peak design loads interlocking metrics typically rely on standard WBT loops
-        document.querySelectorAll('input[name="secondaryParam"]').forEach(radio => {
-            if (radio.value === 'wb') radio.checked = true;
-        });
-        toggleInputs();
+  /* ---- persistence ---- */
+  const DEFAULTS = { unit: 'si', mode: 'rh', pDB: 24, pAlt: 0, pSecond: 50, pCity: '' };
+  function currentState() {
+    return { unit, mode, pDB: $('pDB').value, pAlt: $('pAlt').value, pSecond: $('pSecond').value, pCity: citySel.value };
+  }
+  function persist() { HvacSuite.store.set('inputs:psy', currentState()); }
+  function applyState(s) {
+    unit = s.unit === 'ip' ? 'ip' : 'si';
+    mode = ['rh', 'wb', 'dp'].includes(s.mode) ? s.mode : 'rh';
+    $('pDB').value = s.pDB; $('pAlt').value = s.pAlt; $('pSecond').value = s.pSecond;
+    citySel.value = s.pCity || '';
+  }
+  function restore() {
+    const fromUrl = HvacSuite.queryToState();
+    const fromStore = HvacSuite.store.get('inputs:psy', {});
+    applyState(Object.assign({}, DEFAULTS, fromStore, fromUrl));
+  }
+  function loadDefaults() { applyState(DEFAULTS); $('cityNote').hidden = true; }
 
-        document.getElementById('dbTemp').value = data.db.toFixed(2);
-        document.getElementById('altitude').value = data.alt.toFixed(2);
-        document.getElementById('wbTemp').value = data.wb.toFixed(2);
+  /* ---- UI painters ---- */
+  function paintUnitLabels() {
+    $('u_pDB').textContent = tempLabel();
+    $('u_pAlt').textContent = altLabel();
+    document.querySelectorAll('#unitToggle button').forEach((b) => b.classList.toggle('active', b.dataset.unit === unit));
+    paintModeLabel();
+  }
+  function paintMode() {
+    document.querySelectorAll('#modeToggle button').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+    paintModeLabel();
+  }
+  function paintModeLabel() {
+    const labels = { rh: ['Relative humidity', '%'], wb: ['Wet-bulb temperature', tempLabel()], dp: ['Dew-point temperature', tempLabel()] };
+    $('pSecondLabel').childNodes[0].nodeValue = labels[mode][0] + ' ';
+    $('u_pSecond').textContent = labels[mode][1];
+  }
 
-        document.getElementById('pb-title').innerText = `Loaded Preset: ${cityNames[cityKey]} (ISHRAE 1.0% Peak)`;
-        const unitT = currentSystem === 'SI' ? '°C' : '°F';
-        const unitA = currentSystem === 'SI' ? 'm' : 'ft';
-        document.getElementById('pb-db').innerText = `DB: ${data.db.toFixed(1)} ${unitT}`;
-        document.getElementById('pb-wb').innerText = `WB: ${data.wb.toFixed(1)} ${unitT}`;
-        document.getElementById('pb-alt').innerText = `Alt: ${data.alt.toFixed(0)} ${unitA}`;
-        document.getElementById('preset-banner').style.display = 'block';
+  function setUnit(newUnit) {
+    if (newUnit === unit) return;
+    const db = parseFloat($('pDB').value), alt = parseFloat($('pAlt').value), sec = parseFloat($('pSecond').value);
+    if (isFinite(db)) $('pDB').value = round3(unit === 'ip' ? HvacSuite.fToC(db) : HvacSuite.cToF(db));
+    if (isFinite(alt)) $('pAlt').value = round3(unit === 'ip' ? alt * EXACT_M_PER_FT : alt / EXACT_M_PER_FT);
+    if (isFinite(sec) && mode !== 'rh') $('pSecond').value = round3(unit === 'ip' ? HvacSuite.fToC(sec) : HvacSuite.cToF(sec));
+    unit = newUnit;
+    paintUnitLabels();
+    persist(); recompute();
+  }
 
-        calculate();
+  /* ---- compute ---- */
+  function compute() {
+    const tC = toTempC(parseFloat($('pDB').value));
+    const zM = toAltM(parseFloat($('pAlt').value));
+    const secRaw = parseFloat($('pSecond').value);
+    const warnRange = $('warnRange'), warnCondense = $('warnCondense');
+    warnRange.hidden = true; warnCondense.hidden = true;
+
+    if (!isFinite(tC) || !isFinite(zM) || !isFinite(secRaw)) return null;
+
+    const p = baroP(zM);
+    const pwsT = pws(tC);
+    let pv, RHv, twbC, tdpC;
+
+    if (mode === 'rh') {
+      if (secRaw < 0 || secRaw > 100) { warnRange.hidden = false; warnRange.innerHTML = HvacSuite.ICONS.warn + '<span>Relative humidity must be between 0 and 100%.</span>'; return null; }
+      RHv = secRaw; pv = (RHv / 100) * pwsT;
+      twbC = wetBulbFromPv(tC, pv, p); tdpC = dewPointFromPv(pv);
+    } else if (mode === 'wb') {
+      const twbInC = toTempC(secRaw);
+      if (twbInC > tC) { warnRange.hidden = false; warnRange.innerHTML = HvacSuite.ICONS.warn + '<span>Wet-bulb temperature cannot exceed dry-bulb temperature.</span>'; return null; }
+      twbC = twbInC; pv = pvFromWetBulb(tC, twbC, p); RHv = (pv / pwsT) * 100; tdpC = dewPointFromPv(pv);
+    } else {
+      const tdpInC = toTempC(secRaw);
+      if (tdpInC > tC) { warnRange.hidden = false; warnRange.innerHTML = HvacSuite.ICONS.warn + '<span>Dew-point temperature cannot exceed dry-bulb temperature.</span>'; return null; }
+      tdpC = tdpInC; pv = pws(tdpC); RHv = (pv / pwsT) * 100; twbC = wetBulbFromPv(tC, pv, p);
     }
 
-    function copyPresetData(btn) {
-        const text = [
-            document.getElementById('pb-title').innerText,
-            document.getElementById('pb-db').innerText,
-            document.getElementById('pb-wb').innerText,
-            document.getElementById('pb-alt').innerText
-        ].join(' | ');
-        copyText(text, btn);
+    if (RHv > 100.05) {
+      warnCondense.hidden = false;
+      warnCondense.innerHTML = HvacSuite.ICONS.warn + '<span>Computed state is supersaturated (RH > 100%) — condensation/fog condition, not stable moist air.</span>';
     }
 
-    function resetPresetDropdown() {
-        document.getElementById('ishraePreset').value = 'custom';
-        document.getElementById('preset-banner').style.display = 'none';
+    const W = humidityRatio(pv, p);
+    const h = enthalpyNative(tC, W, unit);
+    const v = specificVolumeSI(tC, W, p);
+
+    return { tC, zM, p, pwsT, pv, RHv, twbC, tdpC, W, h, v };
+  }
+
+  function recompute() {
+    const r = compute();
+    if (!r) {
+      ['rRH','rWB','rDP','rPbar','rPws','rPv','rW','rH','rV'].forEach((id) => ($(id).innerHTML = '—'));
+      drawChart(null);
+      return;
     }
+    $('rRH').innerHTML = `${fmtNum(r.RHv, 1)} <span class="unit">%</span>`;
+    $('rWB').innerHTML = `${fmtNum(fromTempC(r.twbC), 1)} <span class="unit">${tempLabel()}</span>`;
+    $('rDP').innerHTML = `${fmtNum(fromTempC(r.tdpC), 1)} <span class="unit">${tempLabel()}</span>`;
+    $('rPbar').innerHTML = `${fmtNum(fromPresMbar(r.p), unit==='ip'?3:2)} <span class="unit">${presLabel()}</span>`;
+    $('rPws').innerHTML = `${fmtNum(fromPresMbar(r.pwsT), unit==='ip'?4:3)} <span class="unit">${presLabel()}</span>`;
+    $('rPv').innerHTML = `${fmtNum(fromPresMbar(r.pv), unit==='ip'?4:3)} <span class="unit">${presLabel()}</span>`;
+    $('rW').innerHTML = `${fmtNum(unit==='ip'? r.W*7000 : r.W*1000, 2)} <span class="unit">${wLabel()}</span>`;
+    $('rH').innerHTML = `${fmtNum(r.h, 2)} <span class="unit">${hLabel()}</span>`;
+    $('rV').innerHTML = `${fmtNum(fromSpecVol(r.v), unit==='ip'?3:4)} <span class="unit">${vLabel()}</span>`;
+    drawChart(r);
+  }
 
-    function setUnitSystem(system) {
-        currentSystem = system;
-        document.getElementById('unit-si').classList.toggle('active', system === 'SI');
-        document.getElementById('unit-ip').classList.toggle('active', system === 'IP');
+  /* ---- psychrometric chart (canonical °C / g·kg⁻¹, fixed -10 to 50°C) ---- */
+  const NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) { const el = document.createElementNS(NS, tag); Object.keys(attrs).forEach((k) => el.setAttribute(k, attrs[k])); return el; }
 
-        const config = systemConfigs[system];
-        
-        document.getElementById('unit-db').innerText = config.lblTemp;
-        document.getElementById('unit-alt').innerText = config.lblAlt;
-        document.getElementById('unit-wb').innerText = config.lblTemp;
-        document.getElementById('unit-dp-label').innerText = config.lblTemp;
+  function drawChart(state) {
+    const svg = $('psyChart');
+    svg.innerHTML = '';
+    const W = 640, H = 380, ML = 46, MR = 16, MT = 14, MB = 34;
+    const plotW = W - ML - MR, plotH = H - MT - MB;
 
-        resetPresetDropdown();
+    const tMin = -10, tMax = 50;
+    const zM = state ? state.zM : 0;
+    const p = baroP(zM);
 
-        document.getElementById('dbTemp').value = config.db.toFixed(2);
-        document.getElementById('altitude').value = config.alt.toFixed(2);
-        document.getElementById('wbTemp').value = config.wb.toFixed(2);
-        document.getElementById('relHum').value = config.rh.toFixed(2);
-        document.getElementById('dpTemp').value = config.dp.toFixed(2);
+    const samples = [];
+    for (let t = tMin; t <= tMax; t += 2) samples.push(t);
 
-        calculate();
+    const satW = samples.map((t) => humidityRatio(pws(t), p) * 1000);
+    let yMax = 30;
+    if (state && state.W * 1000 * 1.15 > yMax) yMax = Math.ceil((state.W * 1000 * 1.15) / 5) * 5;
+
+    const xScale = (t) => ML + ((t - tMin) / (tMax - tMin)) * plotW;
+    const yScale = (w) => MT + plotH - (Math.min(w, yMax) / yMax) * plotH;
+
+    // gridlines + axis labels
+    for (let t = tMin; t <= tMax; t += 10) {
+      svg.appendChild(svgEl('line', { x1: xScale(t), y1: MT, x2: xScale(t), y2: MT + plotH, class: 'chart-grid' }));
+      const label = unit === 'ip' ? Math.round(HvacSuite.cToF(t)) : t;
+      svg.appendChild(svgEl('text', { x: xScale(t), y: H - 10, class: 'chart-axis-label', 'text-anchor': 'middle' })).textContent = label;
     }
-
-    function toggleInputs() {
-        const activeRadio = document.querySelector('input[name="secondaryParam"]:checked').value;
-        
-        document.getElementById('wrapper-wb').classList.toggle('disabled', activeRadio !== 'wb');
-        document.getElementById('wrapper-rh').classList.toggle('disabled', activeRadio !== 'rh');
-        document.getElementById('wrapper-dp').classList.toggle('disabled', activeRadio !== 'dp');
-
-        document.getElementById('lbl-radio-wb').classList.toggle('active-criterion', activeRadio === 'wb');
-        document.getElementById('lbl-radio-rh').classList.toggle('active-criterion', activeRadio === 'rh');
-        document.getElementById('lbl-radio-dp').classList.toggle('active-criterion', activeRadio === 'dp');
-
-        calculate();
+    for (let w = 0; w <= yMax; w += (yMax > 40 ? 10 : 5)) {
+      svg.appendChild(svgEl('line', { x1: ML, y1: yScale(w), x2: ML + plotW, y2: yScale(w), class: 'chart-grid' }));
+      const label = unit === 'ip' ? Math.round(w * 7) : w;
+      svg.appendChild(svgEl('text', { x: ML - 6, y: yScale(w) + 3, class: 'chart-axis-label', 'text-anchor': 'end' })).textContent = label;
     }
+    svg.appendChild(svgEl('text', { x: W / 2, y: H - 1, class: 'chart-axis-label', 'text-anchor': 'middle' })).textContent = `Dry-bulb (${tempLabel()})`;
+    svg.appendChild(svgEl('text', { x: 10, y: MT - 3, class: 'chart-axis-label', 'text-anchor': 'start' })).textContent = unit === 'ip' ? 'gr/lb' : 'g/kg';
 
-    function getSatVaporPressCelsius(tC) {
-        return 6.1078 * Math.pow(10, (7.5 * tC) / (237.3 + tC)); 
+    // RH reference curves
+    [20, 40, 60, 80].forEach((rh) => {
+      const pts = samples.map((t) => {
+        const pv = (rh / 100) * pws(t);
+        const w = humidityRatio(pv, p) * 1000;
+        return `${xScale(t)},${yScale(w)}`;
+      }).join(' ');
+      svg.appendChild(svgEl('polyline', { points: pts, class: 'chart-rh' }));
+      const lastT = tMax, lastW = humidityRatio((rh / 100) * pws(lastT), p) * 1000;
+      if (lastW <= yMax * 1.05) {
+        svg.appendChild(svgEl('text', { x: xScale(lastT) - 4, y: yScale(Math.min(lastW, yMax)) - 3, class: 'chart-rh-label', 'text-anchor': 'end' })).textContent = rh + '%';
+      }
+    });
+
+    // saturation curve
+    const satPts = samples.map((t, i) => `${xScale(t)},${yScale(satW[i])}`).join(' ');
+    svg.appendChild(svgEl('polyline', { points: satPts, class: 'chart-sat' }));
+    svg.appendChild(svgEl('text', { x: xScale(tMax) - 4, y: yScale(Math.min(satW[satW.length-1], yMax)) - 5, class: 'chart-axis-label', 'text-anchor': 'end', fill: 'var(--paper)' })).textContent = '100% RH';
+
+    // current point
+    if (state) {
+      const px = xScale(state.tC), py = yScale(Math.min(state.W * 1000, yMax));
+      svg.appendChild(svgEl('line', { x1: px, y1: py, x2: px, y2: MT + plotH, class: 'chart-crosshair' }));
+      svg.appendChild(svgEl('line', { x1: ML, y1: py, x2: px, y2: py, class: 'chart-crosshair' }));
+      svg.appendChild(svgEl('circle', { cx: px, cy: py, r: 5, class: 'chart-point' }));
     }
+  }
 
-    function getDewPointCelsius(vPressMbar) {
-        const c = Math.log10(vPressMbar / 6.1078);
-        return (237.3 * c) / (7.5 - c);
-    }
+  /* ---- wiring ---- */
+  document.querySelectorAll('#unitToggle button').forEach((b) => b.addEventListener('click', () => setUnit(b.dataset.unit)));
+  document.querySelectorAll('#modeToggle button').forEach((b) => b.addEventListener('click', () => {
+    mode = b.dataset.mode; paintMode();
+    if (mode === 'rh') $('pSecond').value = 50;
+    else $('pSecond').value = round3(fromTempC(toTempC(parseFloat($('pDB').value)) - 5));
+    persist(); recompute();
+  }));
+  ['pDB','pAlt','pSecond'].forEach((id) => $(id).addEventListener('input', () => { citySel.value=''; $('cityNote').hidden=true; persist(); recompute(); }));
 
-    function setInvalidHighlight(show) {
-        ['dbTemp', 'wbTemp', 'dpTemp'].forEach(id => {
-            document.getElementById(id).closest('.form-group').classList.toggle('input-invalid', show);
-        });
-    }
+  $('btnReset').addEventListener('click', () => { loadDefaults(); paintMode(); paintUnitLabels(); persist(); recompute(); HvacSuite.toast('Reset to defaults'); });
+  $('btnShare').addEventListener('click', () => HvacSuite.shareLink(currentState()));
+  $('btnCopy').addEventListener('click', () => {
+    const text = `Psychrometric State\nDB: ${$('pDB').value} ${tempLabel()}  Altitude: ${$('pAlt').value} ${altLabel()}\n` +
+      `RH: ${$('rRH').textContent}  WB: ${$('rWB').textContent}  DP: ${$('rDP').textContent}\n` +
+      `Barometric P: ${$('rPbar').textContent}  pws: ${$('rPws').textContent}  pv: ${$('rPv').textContent}\n` +
+      `Humidity ratio: ${$('rW').textContent}\nEnthalpy: ${$('rH').textContent}\nSpecific volume: ${$('rV').textContent}`;
+    HvacSuite.copyText(text, 'Psychrometric results copied');
+  });
 
-    function copyAllResults(btn) {
-        const labels = document.querySelectorAll('.results-list .result-item');
-        const lines = [];
-        labels.forEach(item => {
-            const labelEl = item.querySelector('label');
-            const valEl = item.querySelector('.result-val');
-            const label = labelEl ? labelEl.innerText : '';
-            const val = valEl ? valEl.innerText.replace(/\n/g, ' ').replace(/\s+/g, ' ') : '';
-            if (label || val) lines.push(label ? `${label}: ${val}` : val);
-        });
-        copyText(lines.join('\n'), btn);
-    }
-
-    function copyText(text, btn) {
-        const done = () => {
-            const old = btn.innerText;
-            btn.innerText = '✓ Copied';
-            setTimeout(() => { btn.innerText = old; }, 1500);
-        };
-        const fallback = () => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch (e) {}
-            document.body.removeChild(ta);
-            done();
-        };
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, fallback);
-        } else { fallback(); }
-    }
-
-    function resetForm() {
-        const config = systemConfigs[currentSystem];
-        document.getElementById('dbTemp').value = config.db.toFixed(2);
-        document.getElementById('altitude').value = config.alt.toFixed(2);
-        document.getElementById('wbTemp').value = config.wb.toFixed(2);
-        document.getElementById('relHum').value = config.rh.toFixed(2);
-        document.getElementById('dpTemp').value = config.dp.toFixed(2);
-        const rhRadio = document.querySelector('input[name="secondaryParam"][value="rh"]');
-        rhRadio.checked = true;
-        toggleInputs();
-        resetPresetDropdown();
-    }
-
-    function calculate() {
-        let dbInput = parseFloat(document.getElementById('dbTemp').value);
-        let altInput = parseFloat(document.getElementById('altitude').value);
-        const criteria = document.querySelector('input[name="secondaryParam"]:checked').value;
-
-        if (isNaN(dbInput) || isNaN(altInput)) return;
-
-        let tC = currentSystem === 'IP' ? (dbInput - 32) * 5 / 9 : dbInput;
-        let tF = currentSystem === 'IP' ? dbInput : (dbInput * 9 / 5) + 32;
-        let altMeters = currentSystem === 'IP' ? altInput / 3.28084 : altInput;
-
-        let pressMbar = 1013.25 * Math.pow(1 - 2.25577e-5 * altMeters, 5.25588);
-        if(pressMbar <= 0) return;
-
-        let p_ws = getSatVaporPressCelsius(tC); 
-        let p_v = 0; 
-
-        let isInvalidState = false;
-
-        if (criteria === 'rh') {
-            let rh = parseFloat(document.getElementById('relHum').value);
-            if (isNaN(rh) || rh < 0 || rh > 100) return;
-            p_v = (rh / 100) * p_ws;
-        } 
-        else if (criteria === 'dp') {
-            let dpInput = parseFloat(document.getElementById('dpTemp').value);
-            if (isNaN(dpInput)) return;
-            let dpC = currentSystem === 'IP' ? (dpInput - 32) * 5 / 9 : dpInput;
-            
-            if (dpC > tC) { isInvalidState = true; dpC = tC; }
-            p_v = getSatVaporPressCelsius(dpC);
-        } 
-        else if (criteria === 'wb') {
-            let wbInput = parseFloat(document.getElementById('wbTemp').value);
-            if (isNaN(wbInput)) return;
-            let wbC = currentSystem === 'IP' ? (wbInput - 32) * 5 / 9 : wbInput;
-
-            if (wbC > tC) { isInvalidState = true; wbC = tC; }
-            
-            let p_ws_wb = getSatVaporPressCelsius(wbC);
-            p_v = p_ws_wb - ((pressMbar * (tC - wbC)) / 1512) * (1 + 0.00114 * wbC);
-            if(p_v < 0) p_v = 0;
-        }
-
-        if (p_v > p_ws) { p_v = p_ws; isInvalidState = true; }
-
-        let HR = 0.621945 * p_v / (pressMbar - p_v);
-        
-        let enthalpySI = (1.006 * tC) + HR * (2501 + 1.86 * tC);
-        let enthalpyIP = (0.240 * tF) + (HR * (1061 + 0.444 * tF));
-
-        let specVolSI = (287.055 * (tC + 273.15) * (1 + 1.6078 * HR)) / (pressMbar * 100);
-
-        let rhComputed = (p_v / p_ws) * 100;
-        let dpCComputed = getDewPointCelsius(p_v);
-        
-        if (criteria !== 'rh') document.getElementById('relHum').value = rhComputed.toFixed(2);
-        if (criteria !== 'dp') {
-            let finalDp = currentSystem === 'IP' ? (dpCComputed * 9 / 5) + 32 : dpCComputed;
-            document.getElementById('dpTemp').value = finalDp.toFixed(2);
-        }
-        if (criteria !== 'wb') {
-            let lowWb = -50, highWb = tC, solvedWbC = tC;
-            for(let i=0; i<20; i++) {
-                let testWb = (lowWb + highWb) / 2;
-                let testPwsWb = getSatVaporPressCelsius(testWb);
-                let testPv = testPwsWb - ((pressMbar * (tC - testWb)) / 1512) * (1 + 0.00114 * testWb);
-                if (testPv < p_v) { lowWb = testWb; } else { highWb = testWb; }
-            }
-            solvedWbC = (lowWb + highWb) / 2;
-            let finalWb = currentSystem === 'IP' ? (solvedWbC * 9 / 5) + 32 : solvedWbC;
-            document.getElementById('wbTemp').value = finalWb.toFixed(2);
-        }
-
-        document.getElementById('saturation-alert').style.display = isInvalidState ? 'block' : 'none';
-        setInvalidHighlight(isInvalidState);
-
-        let outPressBar = pressMbar / 1000;
-        let outPressInHg = pressMbar * 0.0295300; 
-        let outSatMbar = p_ws;
-        let outSatInHg = p_ws * 0.0295300;       
-        let outPartMbar = p_v;
-        let outPartInHg = p_v * 0.0295300;       
-
-        let outHR_SI = HR; 
-        let outHR_IP = HR * 7000; 
-        let outVolIP = specVolSI * 16.0185; 
-
-        if (currentSystem === 'SI') {
-            document.getElementById('res-press').innerText = outPressBar.toFixed(2) + ' bar';
-            document.getElementById('res-press-alt').innerText = `(${outPressInHg.toFixed(2)} In.Hg)`;
-
-            document.getElementById('res-sat-press').innerText = outSatMbar.toFixed(2) + ' mbar';
-            document.getElementById('res-sat-press-alt').innerText = `(${outSatInHg.toFixed(2)} In.Hg)`;
-
-            document.getElementById('res-part-press').innerText = outPartMbar.toFixed(2) + ' mbar';
-            document.getElementById('res-part-press-alt').innerText = `(${outPartInHg.toFixed(2)} In.Hg)`;
-
-            document.getElementById('res-humidity-ratio').innerText = outHR_SI.toFixed(5) + ' kg/kg';
-            document.getElementById('res-humidity-ratio-alt').innerText = `(${outHR_IP.toFixed(2)} gr/lb)`;
-
-            document.getElementById('res-enthalpy').innerText = enthalpySI.toFixed(2) + ' kJ/kg';
-            document.getElementById('res-enthalpy-alt').innerText = `(${enthalpyIP.toFixed(2)} Btu/lb)`;
-
-            document.getElementById('res-volume').innerText = specVolSI.toFixed(2) + ' m³/kg';
-            document.getElementById('res-volume-alt').innerText = `(${outVolIP.toFixed(2)} Cft/lb)`;
-        } else {
-            document.getElementById('res-press').innerText = outPressInHg.toFixed(2) + ' In.Hg';
-            document.getElementById('res-press-alt').innerText = `(${outPressBar.toFixed(2)} bar)`;
-
-            document.getElementById('res-sat-press').innerText = outSatInHg.toFixed(2) + ' In.Hg';
-            document.getElementById('res-sat-press-alt').innerText = `(${outSatMbar.toFixed(2)} mbar)`;
-
-            document.getElementById('res-part-press').innerText = outPartInHg.toFixed(2) + ' In.Hg';
-            document.getElementById('res-part-press-alt').innerText = `(${outPartMbar.toFixed(2)} mbar)`;
-
-            document.getElementById('res-humidity-ratio').innerText = outHR_IP.toFixed(2) + ' gr/lb';
-            document.getElementById('res-humidity-ratio-alt').innerText = `(${outHR_SI.toFixed(5)} kg/kg)`;
-
-            document.getElementById('res-enthalpy').innerText = enthalpyIP.toFixed(2) + ' Btu/lb';
-            document.getElementById('res-enthalpy-alt').innerText = `(${enthalpySI.toFixed(2)} kJ/kg)`;
-
-            document.getElementById('res-volume').innerText = outVolIP.toFixed(2) + ' Cft/lb';
-            document.getElementById('res-volume-alt').innerText = `(${specVolSI.toFixed(2)} m³/kg)`;
-        }
-    }
-
-    window.onload = function() {
-        setUnitSystem('IP'); 
-    };
-</script>
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('../sw.js').catch(() => {});
-        });
-    }
+  HvacSuite.initNav();
+  restore();
+  paintUnitLabels();
+  paintMode();
+  recompute();
+})();
 </script>
 </body>
 </html>
