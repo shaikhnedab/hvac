@@ -6,7 +6,7 @@
  * cache thereafter; if the very first visit was offline, the page still
  * renders with its fallback font stack.
  */
-const CACHE_VERSION = 'hvac-suite-v7';
+const CACHE_VERSION = 'hvac-suite-v8';
 const PRECACHE_URLS = [
   './',
   './index.html',

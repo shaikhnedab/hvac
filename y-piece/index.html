@@ -231,7 +231,15 @@
     compute();
   }
 
-  function round2(v) { return Math.round(v * 1e6) / 1e6; }
+  // Rounds to 6 significant figures rather than 6 decimal places. Fixed
+  // decimals are needed so an IP->SI->IP round trip does not drift, but they
+  // make the field show noise like 943.885979 L/s instead of 943.886.
+  function round2(v) {
+    if (!isFinite(v) || v === 0) return v;
+    const dp = 6 - Math.floor(Math.log10(Math.abs(v))) - 1;
+    const m = Math.pow(10, Math.max(0, dp));
+    return Math.round(v * m) / m;
+  }
 
   function loadDefaults() {
     unit = DEFAULTS.unit;
